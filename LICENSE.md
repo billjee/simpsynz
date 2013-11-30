@@ -4,7 +4,7 @@ SimPSynz is distributed free of charge. We ask the user to please explicitly men
 
 Farooq, B., Bierlaire, M., Hurtubia, R., and Floetteroed, G. (2013). Simulation based Synthesis of Population, Transportation Research Part B: Methodological (Available online 22 October 2013).
 
-This software or any components of it is not for any commercial use.
+This software or any component of it is not for any commercial use.
 
 DISCLAIMER
 

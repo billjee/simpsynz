@@ -5,3 +5,5 @@ Farooq, B., Bierlaire, M., Hurtubia, R., and Floetteroed, G. (2013). Simulation 
 Note 1: At the moment, the java version of agents generation is not tested. If you use it, please do let us know of your experience.
 
 Note 2: The agents association generation is currently written in java only. This code has been tested by Paul Anderson.
+
+Please see LICENSE.md for details on usage.

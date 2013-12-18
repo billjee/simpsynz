@@ -14,7 +14,7 @@ using System.Linq;
 using System.Text;
 using SimulationObjects;
 using PopulationSynthesis.Utils;
-using IPF;
+//using IPF;
 
 namespace Program
 {
@@ -24,9 +24,9 @@ namespace Program
         {
             AgentType curTyp = new AgentType();
             curTyp = AgentType.Person;
-            //CreateUsingSimulation(curTyp);
-            //CreateConditionalsFromSample();
-            CreateUsingIPF(curTyp);
+            CreateUsingSimulation(curTyp);
+            CreateConditionalsFromSample();
+            //CreateUsingIPF(curTyp);
 
             ////////////////////////////////
             ////////////////////////////////
@@ -44,7 +44,7 @@ namespace Program
             }
         }
 
-        private static void CreateUsingIPF(AgentType currType)
+/*        private static void CreateUsingIPF(AgentType currType)
         {
 
             IPFWorld currIPFWorld = new IPFWorld();
@@ -59,7 +59,7 @@ namespace Program
                 , Constants.DATA_DIR
                 + "IPF\\Output\\SyntheticPopulation_01Per_CH1004_r1.csv");
         }
-
+*/
         private static void CreateUsingSimulation(AgentType currType)
         {
             if (currType == AgentType.Household)

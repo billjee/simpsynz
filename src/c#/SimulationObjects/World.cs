@@ -1644,8 +1644,8 @@ namespace SimulationObjects
                 }
                 double n_zero = Double.Parse(strToken[1]);
                 double n_one = Double.Parse(strToken[2]);
-                double n_two = Double.Parse(strToken[1]);
-                double n_three = Double.Parse(strToken[2]);
+                double n_two = Double.Parse(strToken[3]);
+                double n_three = Double.Parse(strToken[4]);
 
                 double sumD = n_zero + n_one;
                 SpatialZone currZone =

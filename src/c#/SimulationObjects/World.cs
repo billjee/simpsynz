@@ -24,19 +24,15 @@ namespace SimulationObjects
         private DiscreteCondDistribution mobelKidsConditionals;
         private DiscreteCondDistribution mobelPersConditionals;
 
-        private InputDataReader mobelWrkrsFileReader;
-        private InputDataReader mobelKidsFileReader;
-        private InputDataReader mobelPersFileReader;
-
-        private InputDataReader censusDwellFileReader;
-        private InputDataReader censusCarFileReader;
-        private InputDataReader censusPersonFileReader;
+        private InputDataReader CensusDwellFileReader;
+        private InputDataReader CensusCarFileReader;
+        private InputDataReader CensusPersonFileReader;
         private InputDataReader censusUnivDegFileReader;
 
-        private InputDataReader censusAgeFileReader;
-        private InputDataReader censusSexFileReader;
-        private InputDataReader censusHhldSizeFileReader;
-        private InputDataReader censusEduLevelFileReader;
+        private InputDataReader CensusAgeFileReader;
+        private InputDataReader CensusSexFileReader;
+        private InputDataReader CensusHhldSizeFileReader;
+        private InputDataReader CensusEduLevelFileReader;
 
 
         private OutputFileWritter agentsOutputFile;
@@ -56,71 +52,54 @@ namespace SimulationObjects
             myHhldsPool = new ArrayList();
             myPersonPool = new ArrayList();
             myZonalCollection = new Hashtable();
-           
+
             myGibbsSampler = new GibbsSampler();
-            agentsOutputFile = new OutputFileWritter();
         }
 
         public void Initialize(bool createPool, AgentType currType)
         {
             InitializeInputData(currType);
-            if (createPool == true)
+            if(createPool == true)
             {
                 LoadZones(currType);
                 LoadZonalData(currType);
             }
             else
             {
-                if (currType != AgentType.Person)
+                if(currType != AgentType.Person)
                 {
-                    InputDataReader currReader = new InputDataReader();
-                    currReader.OpenFile(Constants.DATA_DIR 
-                            + "Household\\CensusHhldCountByDwell.csv");
-                    zonalControlTotals = new Hashtable();
-                    currReader.FillControlTotalsByDwellType(zonalControlTotals);
-                    currReader.CloseFile();
+                    using (InputDataReader currReader = new InputDataReader(Constants.DATA_DIR
+                                + "Household\\CensusHhldCountByDwell.csv"))
+                    {
+                        zonalControlTotals = new Hashtable();
+                        currReader.FillControlTotalsByDwellType(zonalControlTotals);
+                    }
                 }
             }
         }
 
         private void InitializeInputData(AgentType currType)
         {
-            if (currType == AgentType.Household)
+            if(currType == AgentType.Household)
             {
                 mobelWrkrsConditionals = new DiscreteCondDistribution();
                 mobelKidsConditionals = new DiscreteCondDistribution();
                 mobelPersConditionals = new DiscreteCondDistribution();
-
-                mobelWrkrsFileReader = new InputDataReader();
-                mobelKidsFileReader = new InputDataReader();
-                mobelPersFileReader = new InputDataReader();
-
-                censusUnivDegFileReader = new InputDataReader();
-                censusDwellFileReader = new InputDataReader();
-                censusCarFileReader = new InputDataReader();
-                censusPersonFileReader = new InputDataReader();
-            }
-            else if (currType == AgentType.Person)
-            {
-                censusAgeFileReader = new InputDataReader();
-                censusSexFileReader = new InputDataReader();
-                censusHhldSizeFileReader = new InputDataReader();
-                censusEduLevelFileReader = new InputDataReader();
             }
         }
 
         public void LoadZonalData(AgentType currType)
         {
-            if (currType == AgentType.Household)
+            if(currType == AgentType.Household)
             {
                 LoadMobelData();
                 LoadMarginalsForCars();
                 LoadMarginalsForDwellings();
                 LoadMarginalsForPersons();
             }
-            else if (currType == AgentType.Person)
+            else if(currType == AgentType.Person)
             {
-                foreach (DictionaryEntry ent in myZonalCollection)
+                foreach(DictionaryEntry ent in myZonalCollection)
                 {
                     OpenCensusFiles(currType);
                     SpatialZone currZone = (SpatialZone)ent.Value;
@@ -138,189 +117,186 @@ namespace SimulationObjects
         void LoadPesronCensusData(SpatialZone currZone)
         {
             currZone.myAgeConditional.FlushOutData();
-            censusAgeFileReader.
+            CensusAgeFileReader.
               FillCollection2(currZone.myAgeConditional);
             currZone.myAgeConditional.SetDimensionName("Age");
 
             currZone.mySexConditional.FlushOutData();
-            censusSexFileReader.
+            CensusSexFileReader.
               FillCollection2(currZone.mySexConditional);
             currZone.mySexConditional.SetDimensionName("Sex");
 
             currZone.myHhldSizeConditional.FlushOutData();
-            censusHhldSizeFileReader.
+            CensusHhldSizeFileReader.
               FillCollection2(currZone.myHhldSizeConditional);
             currZone.myHhldSizeConditional.SetDimensionName("HouseholdSize2");
 
             currZone.myEduLevelConditional.FlushOutData();
-            censusEduLevelFileReader.
+            CensusEduLevelFileReader.
               FillCollection2(currZone.myEduLevelConditional);
             currZone.myEduLevelConditional.SetDimensionName("EducationLevel");
         }
 
         void LoadMobelData()
         {
-            mobelWrkrsFileReader.OpenFile(
-                Constants.DATA_DIR + "Household\\MobelNbWrkr.csv");
-            mobelWrkrsConditionals.FlushOutData();
-            mobelWrkrsFileReader.FillCollection2(mobelWrkrsConditionals);
-            mobelWrkrsConditionals.SetDimensionName("NumOfWorkers");
-            mobelWrkrsFileReader.CloseFile();
+            using (var mobelWrkrsFileReader = new InputDataReader(
+                Constants.DATA_DIR + "Household\\MobelNbWrkr.csv"))
+            {
+                mobelWrkrsConditionals.FlushOutData();
+                mobelWrkrsFileReader.FillCollection2(mobelWrkrsConditionals);
+                mobelWrkrsConditionals.SetDimensionName("NumOfWorkers");
+            }
 
-            mobelKidsFileReader.OpenFile(
-                Constants.DATA_DIR + "Household\\MobelNbKids.csv");
-            mobelKidsConditionals.FlushOutData();
-            mobelKidsFileReader.FillCollection2(mobelKidsConditionals);
-            mobelKidsConditionals.SetDimensionName("NumOfKids");
-            mobelKidsFileReader.CloseFile();
+            using (var mobelKidsFileReader = new InputDataReader(
+                Constants.DATA_DIR + "Household\\MobelNbKids.csv"))
+            {
+                mobelKidsConditionals.FlushOutData();
+                mobelKidsFileReader.FillCollection2(mobelKidsConditionals);
+                mobelKidsConditionals.SetDimensionName("NumOfKids");
+            }
 
-            mobelPersFileReader.OpenFile(
-                Constants.DATA_DIR + "Household\\MobelNbPers.csv");
-            mobelPersConditionals.FlushOutData();
-            mobelPersFileReader.FillCollection2(mobelPersConditionals);
-            mobelPersConditionals.SetDimensionName("HouseholdSize");
-            mobelPersFileReader.CloseFile();
+
+            using (var mobelPersFileReader = new InputDataReader(
+                Constants.DATA_DIR + "Household\\MobelNbPers.csv"))
+            {
+                mobelPersConditionals.FlushOutData();
+                mobelPersFileReader.FillCollection2(mobelPersConditionals);
+                mobelPersConditionals.SetDimensionName("HouseholdSize");
+            }
         }
 
         private void OpenCensusFiles(AgentType currType)
         {
-            if (currType == AgentType.Household)
+            if(currType == AgentType.Household)
             {
-                censusPersonFileReader.OpenFile(
+                CensusPersonFileReader = new InputDataReader(
                     Constants.DATA_DIR + "\\Household\\CensusNumOfPers.csv");
-                censusDwellFileReader.OpenFile(
+                CensusDwellFileReader = new InputDataReader(
                     Constants.DATA_DIR + "\\Household\\CensusDwellingType.csv");
-                censusCarFileReader.OpenFile(
+                CensusCarFileReader = new InputDataReader(
                     Constants.DATA_DIR + "\\Household\\CensusNumOfCars.csv");
 
-                censusPersonFileReader.GetConditionalList();
-                censusDwellFileReader.GetConditionalList();
-                censusCarFileReader.GetConditionalList();
+                CensusPersonFileReader.GetConditionalList();
+                CensusDwellFileReader.GetConditionalList();
+                CensusCarFileReader.GetConditionalList();
             }
-            else if (currType == AgentType.Person)
+            else if(currType == AgentType.Person)
             {
-                censusAgeFileReader.OpenFile(
+                CensusAgeFileReader = new InputDataReader(
                     Constants.DATA_DIR + "\\Person\\ConditionalExperiments"
                     + "\\NoSexConditional\\CensusAge.csv");
 
-                censusSexFileReader.OpenFile(
+                CensusSexFileReader = new InputDataReader(
                     Constants.DATA_DIR + "\\Person\\ConditionalExperiments"
                     + "\\NoSexConditional\\CensusSex.csv");
 
-                censusHhldSizeFileReader.OpenFile(
+                CensusHhldSizeFileReader = new InputDataReader(
                     Constants.DATA_DIR + "\\Person\\ConditionalExperiments"
                     + "\\NoSexConditional\\CensusHouseholdSize2.csv");
 
-                censusEduLevelFileReader.OpenFile(
+                CensusEduLevelFileReader = new InputDataReader(
                     Constants.DATA_DIR + "\\Person\\ConditionalExperiments"
                     + "\\NoSexConditional\\CensusEducationLevel.csv");
-                censusEduLevelFileReader.GetConditionalList();
+                CensusEduLevelFileReader.GetConditionalList();
             }
         }
 
-/*        void LoadCensusData(SpatialZone currZone)
-        {
-            currZone.censusPersonConditionals.FlushOutData();
-            censusPersonFileReader.
-              FillCollection1(currZone.censusPersonConditionals);
-            currZone.censusPersonConditionals.SetDimensionName("HouseholdSize");
-
-        }*/
-
         void CloseCensusFiles(AgentType currType)
         {
-            if (currType == AgentType.Household)
+            if(currType == AgentType.Household)
             {
 
-                censusDwellFileReader.CloseFile();
-                censusCarFileReader.CloseFile();
-                censusPersonFileReader.CloseFile();
+                CensusDwellFileReader.Dispose();
+                CensusCarFileReader.Dispose();
+                CensusPersonFileReader.Dispose();
             }
-            else if (currType == AgentType.Person)
+            else if(currType == AgentType.Person)
             {
-                censusAgeFileReader.CloseFile();
-                censusSexFileReader.CloseFile();
-                censusHhldSizeFileReader.CloseFile();
-                censusEduLevelFileReader.CloseFile();
+                CensusAgeFileReader.Dispose();
+                CensusSexFileReader.Dispose();
+                CensusHhldSizeFileReader.Dispose();
+                CensusEduLevelFileReader.Dispose();
             }
         }
 
         public void CreateHoseholdPopulationPool(string fileName)
         {
-            agentsOutputFile.OpenFile(fileName);
-            uint agentsCreated = 1;
-            uint counter = 0;
-            ArrayList mobelCond = new ArrayList();
-            mobelCond.Add((ConditionalDistribution)mobelWrkrsConditionals);
-            mobelCond.Add((ConditionalDistribution)mobelKidsConditionals);
-            mobelCond.Add((ConditionalDistribution)mobelPersConditionals);
-
-            foreach(DictionaryEntry entry in myZonalCollection)
+            using (var agentsOutputFile = new OutputFileWritter(fileName))
             {
-                SpatialZone currZone = (SpatialZone) entry.Value;
-                // warmup time
-                myGibbsSampler.GenerateAgents(currZone,
-                                Constants.WARMUP_ITERATIONS, 
-                                new Household(currZone.GetName()), true,
-                                mobelCond,
-                                agentsOutputFile);
-                myHhldsPool.Clear();
-                myGibbsSampler.SetAgentCounter(agentsCreated+counter);
-                // actual generation
-                myHhldsPool = myGibbsSampler.GenerateAgents(currZone,
-                                Constants.POOL_COUNT, 
-                                new Household(currZone.GetName()), false,
-                                mobelCond,
-                                agentsOutputFile);
-                agentsCreated += (uint) myHhldsPool.Count;
+                uint agentsCreated = 1;
+                uint counter = 0;
+                ArrayList mobelCond = new ArrayList();
+                mobelCond.Add((ConditionalDistribution)mobelWrkrsConditionals);
+                mobelCond.Add((ConditionalDistribution)mobelKidsConditionals);
+                mobelCond.Add((ConditionalDistribution)mobelPersConditionals);
+
+                foreach(DictionaryEntry entry in myZonalCollection)
+                {
+                    SpatialZone currZone = (SpatialZone)entry.Value;
+                    // warmup time
+                    myGibbsSampler.GenerateAgents(currZone,
+                                    Constants.WARMUP_ITERATIONS,
+                                    new Household(currZone.GetName()), true,
+                                    mobelCond,
+                                    agentsOutputFile);
+                    myHhldsPool.Clear();
+                    myGibbsSampler.SetAgentCounter(agentsCreated + counter);
+                    // actual generation
+                    myHhldsPool = myGibbsSampler.GenerateAgents(currZone,
+                                    Constants.POOL_COUNT,
+                                    new Household(currZone.GetName()), false,
+                                    mobelCond,
+                                    agentsOutputFile);
+                    agentsCreated += (uint)myHhldsPool.Count;
+                }
             }
-            agentsOutputFile.CloseFile();
         }
 
         public void CreatePersonPopulationPool(string fileName)
         {
-            agentsOutputFile.OpenFile(fileName);
-            uint agentsCreated = 1;
-            uint counter = 0;
-            ArrayList mobelCond = new ArrayList();
-
-            foreach (DictionaryEntry entry in myZonalCollection)
+            using (var agentsOutputFile = new OutputFileWritter(fileName))
             {
-                SpatialZone currZone = (SpatialZone)entry.Value;
-                if (currZone.GetName() != "1004")
+                uint agentsCreated = 1;
+                uint counter = 0;
+                ArrayList mobelCond = new ArrayList();
+
+                foreach(DictionaryEntry entry in myZonalCollection)
                 {
-                    continue;
+                    SpatialZone currZone = (SpatialZone)entry.Value;
+                    if(currZone.GetName() != "1004")
+                    {
+                        continue;
+                    }
+                    // warmup time
+                    myGibbsSampler.GenerateAgents(currZone,
+                                    Constants.WARMUP_ITERATIONS,
+                                    new Person(currZone.GetName()), true,
+                                    mobelCond,
+                                    agentsOutputFile);
+                    myPersonPool.Clear();
+                    myGibbsSampler.SetAgentCounter(agentsCreated + counter);
+                    // actual generation
+                    myPersonPool = myGibbsSampler.GenerateAgents(currZone,
+                                    Constants.POOL_COUNT,
+                                    new Person(currZone.GetName()), false,
+                                    mobelCond,
+                                    agentsOutputFile);
+                    agentsCreated += (uint)myPersonPool.Count;
                 }
-                // warmup time
-                myGibbsSampler.GenerateAgents(currZone,
-                                Constants.WARMUP_ITERATIONS,
-                                new Person(currZone.GetName()), true,
-                                mobelCond,
-                                agentsOutputFile);
-                myPersonPool.Clear();
-                myGibbsSampler.SetAgentCounter(agentsCreated + counter);
-                // actual generation
-                myPersonPool = myGibbsSampler.GenerateAgents(currZone,
-                                Constants.POOL_COUNT,
-                                new Person(currZone.GetName()), false,
-                                mobelCond,
-                                agentsOutputFile);
-                agentsCreated += (uint)myPersonPool.Count;
             }
-            agentsOutputFile.CloseFile();
         }
 
         public void LoadZones(AgentType CurrType)
         {
-            if (CurrType == AgentType.Household)
+            if(CurrType == AgentType.Household)
             {
-                InputDataReader currReader = new InputDataReader();
-                currReader.OpenFile(
-                    Constants.DATA_DIR + "Household\\CensusZonalData.csv");
-                currReader.FillZonalData(myZonalCollection);
-                currReader.CloseFile();
+                using (var currReader = new InputDataReader(
+                    Constants.DATA_DIR + "Household\\CensusZonalData.csv"))
+                {
+                    currReader.FillZonalData(myZonalCollection);
+                }
             }
-            else if (CurrType == AgentType.Person)
+            else if(CurrType == AgentType.Person)
             {
                 CreateSpatialZones();
             }
@@ -349,210 +325,205 @@ namespace SimulationObjects
                 string fileName)
         {
             ArrayList hhldPool = GetHouseholdPoolForClonning(poolfileName);
-                
-            InputDataReader currReader = new InputDataReader();
-            currReader.OpenFile(poolfileName);
-            ArrayList currPool = new ArrayList();
-            RandomNumberGen currRandGen = new RandomNumberGen(seed);
-            OutputFileWritter currOutputFile = new OutputFileWritter();
-            currOutputFile.OpenFile(fileName);
-            currOutputFile.WriteToFile("HhldID,SectorID,HhldSize,NbOfWorkers,"
-                        + "NbofKids,NbofUnivDegree,IncLvl,NumbCars,"
-                        + "DwellTyp(PopSynt),EPFL_SectorID,BuildingID");
-            int totSingle = 0;
-            int totSemi = 0;
-            int totDb = 0;
-            int toApt = 0;
 
-            while (currReader.LoadZonalPopulationPool(currPool) == true)
+            using (InputDataReader currReader = new InputDataReader(poolfileName))
+            using (OutputFileWritter currOutputFile = new OutputFileWritter(fileName))
             {
-                string[] currStrTok = ((string)currPool[0]).Split(',');
-                int indx = 0;
+                ArrayList currPool = new ArrayList();
+                RandomNumberGen currRandGen = new RandomNumberGen(seed);
+                currOutputFile.WriteToFile("HhldID,SectorID,HhldSize,NbOfWorkers,"
+                            + "NbofKids,NbofUnivDegree,IncLvl,NumbCars,"
+                            + "DwellTyp(PopSynt),EPFL_SectorID,BuildingID");
+                int totSingle = 0;
+                int totSemi = 0;
+                int totDb = 0;
+                int toApt = 0;
 
-                string currKey = "";
-                if (zonalControlTotals.ContainsKey(currStrTok[1]))
+                while(currReader.LoadZonalPopulationPool(currPool) == true)
                 {
-                    // for each type of dwelling
-                    for (int i = 0; i < 4; i++)
+                    string[] currStrTok = ((string)currPool[0]).Split(',');
+                    int indx = 0;
+
+                    string currKey = "";
+                    if(zonalControlTotals.ContainsKey(currStrTok[1]))
                     {
-                        ArrayList currDwellHhld = new ArrayList();
-                        foreach (string currHhld in currPool)
+                        // for each type of dwelling
+                        for(int i = 0; i < 4; i++)
                         {
-                            string[] currHhldVal = currHhld.Split(',');
-                            if (currHhldVal[(currHhldVal.Length - 1)] == i.ToString())
+                            ArrayList currDwellHhld = new ArrayList();
+                            foreach(string currHhld in currPool)
                             {
-                                currDwellHhld.Add(currHhld);
+                                string[] currHhldVal = currHhld.Split(',');
+                                if(currHhldVal[(currHhldVal.Length - 1)] == i.ToString())
+                                {
+                                    currDwellHhld.Add(currHhld);
+                                }
                             }
-                        }
-                        currKey = (string)currStrTok[1];
-                        string[] contTotStr = (string[])zonalControlTotals[currKey];
+                            currKey = (string)currStrTok[1];
+                            string[] contTotStr = (string[])zonalControlTotals[currKey];
 
-                        // number of dwellings of certain type
-                        indx = int.Parse(contTotStr[i + 2]);
-                        string ZnID = contTotStr[0];
-                        string ZnEFPLID = contTotStr[1];
-                        string bldId = "0" + (i + 1).ToString();
+                            // number of dwellings of certain type
+                            indx = int.Parse(contTotStr[i + 2]);
+                            string ZnID = contTotStr[0];
+                            string ZnEFPLID = contTotStr[1];
+                            string bldId = "0" + (i + 1).ToString();
 
-                        if (indx > currDwellHhld.Count)
-                        {
-                            indx = indx - currDwellHhld.Count;
-                            for (int x = 0; x < currDwellHhld.Count; x++)
+                            if(indx > currDwellHhld.Count)
                             {
-                                string[] hhldValues = ((string)
-                                        currDwellHhld[x]).Split(',');
-                                string currHhldStr = hhldValues[0] + "," + ZnID.Substring(0, 5)
+                                indx = indx - currDwellHhld.Count;
+                                for(int x = 0; x < currDwellHhld.Count; x++)
+                                {
+                                    string[] hhldValues = ((string)
+                                            currDwellHhld[x]).Split(',');
+                                    string currHhldStr = hhldValues[0] + "," + ZnID.Substring(0, 5)
+                                                + "," + hhldValues[3] + "," + hhldValues[4]
+                                                + "," + hhldValues[5] + "," + hhldValues[6]
+                                                + "," + hhldValues[7] + "," + hhldValues[8]
+                                                + "," + hhldValues[9] + ","
+                                                + contTotStr[1] + "," + contTotStr[1] + bldId;
+                                    currOutputFile.WriteToFile(currHhldStr);
+                                    //Console.WriteLine(currHhldStr);
+                                    if(i == 0) totSingle++;
+                                    else if(i == 1) totSemi++;
+                                    else if(i == 2) totDb++;
+                                    else toApt++;
+                                }
+                                ArrayList currRandList = currRandGen.GetNNumbersInRange(0,
+                                    hhldPool.Count - 1, indx);
+                                for(int j = 0; j < currRandList.Count; j++)
+                                {
+                                    string[] hhldValues = ((string)
+                                        hhldPool[(int)currRandList[j]]).Split(',');
+                                    string currHhldStr = ZnID + i.ToString() + j.ToString()
+                                            + "," + ZnID.Substring(0, 5)
+                                            + "," + hhldValues[0] + "," + hhldValues[1]
+                                            + "," + hhldValues[2] + "," + hhldValues[3]
+                                            + "," + hhldValues[4] + "," + hhldValues[5]
+                                            + "," + hhldValues[6] + ","
+                                            + ZnEFPLID + "," + ZnEFPLID + bldId;
+                                    currOutputFile.WriteToFile(currHhldStr);
+                                    //Console.WriteLine(currHhldStr);
+                                    if(i == 0) totSingle++;
+                                    else if(i == 1) totSemi++;
+                                    else if(i == 2) totDb++;
+                                    else toApt++;
+                                }
+                            }
+                            else
+                            {
+                                ArrayList currRandList = currRandGen.GetNNumbersInRange(0,
+                                    currDwellHhld.Count - 1, indx);
+                                for(int j = 0; j < currRandList.Count; j++)
+                                {
+                                    string[] hhldValues = ((string)
+                                        currDwellHhld[(int)currRandList[j]]).Split(',');
+                                    string currHhldStr = hhldValues[0] + "," + ZnID.Substring(0, 5)
                                             + "," + hhldValues[3] + "," + hhldValues[4]
                                             + "," + hhldValues[5] + "," + hhldValues[6]
                                             + "," + hhldValues[7] + "," + hhldValues[8]
                                             + "," + hhldValues[9] + ","
                                             + contTotStr[1] + "," + contTotStr[1] + bldId;
-                                currOutputFile.WriteToFile(currHhldStr);
-                                //Console.WriteLine(currHhldStr);
-                                if (i == 0) totSingle++;
-                                else if (i == 1) totSemi++;
-                                else if (i == 2) totDb++;
-                                else toApt++;
-                            }
-                            ArrayList currRandList = currRandGen.GetNNumbersInRange(0,
-                                hhldPool.Count - 1, indx);
-                            for (int j = 0; j < currRandList.Count; j++)
-                            {
-                                string[] hhldValues = ((string)
-                                    hhldPool[(int)currRandList[j]]).Split(',');
-                                string currHhldStr = ZnID + i.ToString() + j.ToString()
-                                        + "," + ZnID.Substring(0, 5)
-                                        + "," + hhldValues[0] + "," + hhldValues[1]
-                                        + "," + hhldValues[2] + "," + hhldValues[3]
-                                        + "," + hhldValues[4] + "," + hhldValues[5]
-                                        + "," + hhldValues[6] + ","
-                                        + ZnEFPLID + "," + ZnEFPLID + bldId;
-                                currOutputFile.WriteToFile(currHhldStr);
-                                //Console.WriteLine(currHhldStr);
-                                if (i == 0) totSingle++;
-                                else if (i == 1) totSemi++;
-                                else if (i == 2) totDb++;
-                                else toApt++;
-                            }
-                        }
-                        else
-                        {
-                            ArrayList currRandList = currRandGen.GetNNumbersInRange(0,
-                                currDwellHhld.Count - 1, indx);
-                            for (int j = 0; j < currRandList.Count; j++)
-                            {
-                                string[] hhldValues = ((string)
-                                    currDwellHhld[(int)currRandList[j]]).Split(',');
-                                string currHhldStr = hhldValues[0] + "," + ZnID.Substring(0, 5)
-                                        + "," + hhldValues[3] + "," + hhldValues[4]
-                                        + "," + hhldValues[5] + "," + hhldValues[6]
-                                        + "," + hhldValues[7] + "," + hhldValues[8]
-                                        + "," + hhldValues[9] + ","
-                                        + contTotStr[1] + "," + contTotStr[1] + bldId;
-                                currOutputFile.WriteToFile(currHhldStr);
-                                //Console.WriteLine(currHhldStr);
-                                if (i == 0) totSingle++;
-                                else if (i == 1) totSemi++;
-                                else if (i == 2) totDb++;
-                                else toApt++;
+                                    currOutputFile.WriteToFile(currHhldStr);
+                                    //Console.WriteLine(currHhldStr);
+                                    if(i == 0) totSingle++;
+                                    else if(i == 1) totSemi++;
+                                    else if(i == 2) totDb++;
+                                    else toApt++;
+                                }
                             }
                         }
                     }
+                    currPool.Clear();
                 }
-                currPool.Clear();
-            }
-            currOutputFile.CloseFile();
-            currReader.CloseFile();
-            Console.WriteLine("Total Detached:\t" + totSingle.ToString()
-                              +"\nTotal SemiDetached:\t" + totSemi.ToString()
-                              +"\nTotal Attached:\t" + totDb.ToString()
+                Console.WriteLine("Total Detached:\t" + totSingle.ToString()
+                              + "\nTotal SemiDetached:\t" + totSemi.ToString()
+                              + "\nTotal Attached:\t" + totDb.ToString()
                               + "\nTotal Apartment:\t" + toApt.ToString());
+            }
         }
 
         public ArrayList GetHouseholdPoolForClonning(string fileName)
         {
             ArrayList currArrayList = new ArrayList();
             ArrayList currPool = new ArrayList();
-            InputDataReader currReader = new InputDataReader();
-            currReader.OpenFile(
-                Constants.DATA_DIR + "Household\\SyntheticHhld.csv");
-            RandomNumberGen currRand = new RandomNumberGen();
-            while (currReader.LoadZonalPopulationPoolByType
-                (currPool, "3") == true)
+            using (var currReader = new InputDataReader(Constants.DATA_DIR + "Household\\SyntheticHhld.csv"))
             {
-                if (currArrayList.Count > 60000)
+                RandomNumberGen currRand = new RandomNumberGen();
+                while(currReader.LoadZonalPopulationPoolByType
+                    (currPool, "3") == true)
                 {
-                    currReader.CloseFile();
-                    return currArrayList;
-                }
-
-                if (currPool.Count > 0)
-                {
-                    int numB = (int)Math.Ceiling((currPool.Count * 0.1));
-                    ArrayList curDrw = currRand.GetNNumbersInRange(
-                                            0, currPool.Count - 1, (numB));
-                    if (curDrw.Count > 0)
+                    if(currArrayList.Count > 60000)
                     {
-                        for (int i = 0; i < numB; i++)
+                        return currArrayList;
+                    }
+
+                    if(currPool.Count > 0)
+                    {
+                        int numB = (int)Math.Ceiling((currPool.Count * 0.1));
+                        ArrayList curDrw = currRand.GetNNumbersInRange(
+                                                0, currPool.Count - 1, (numB));
+                        if(curDrw.Count > 0)
                         {
-                            currArrayList.Add(currPool[(int)curDrw[i]]);
+                            for(int i = 0; i < numB; i++)
+                            {
+                                currArrayList.Add(currPool[(int)curDrw[i]]);
+                            }
                         }
                     }
+                    currPool.Clear();
                 }
-                currPool.Clear();
             }
-            currReader.CloseFile();
             return currArrayList;
         }
 
         public void CreateHouseholdPopulation()
         {
-            InputDataReader currReader = new InputDataReader();
-            currReader.OpenFile(
-                Constants.DATA_DIR + "SyntheticHhld_withourImpSamp.csv");
-            ArrayList currPool = new ArrayList();
-            RandomNumberGen currRandGen = new RandomNumberGen();
-            OutputFileWritter currOutputFile = new OutputFileWritter();
-            currOutputFile.OpenFile(
-                Constants.DATA_DIR + "PopulationRealization20k.csv");
-            currOutputFile.WriteToFile("HhldID,SectorID,HhldSize,NbOfWorkers,"
-                        + "NbofKids,NbofUnivDegree,IncLvl,NumbCars,"
-                        + "DwellTyp(PopSynt),EPFL_SectorID,BuildingID");
-            while (currReader.LoadZonalPopulationPool(currPool) == true)
+            using (var currReader = new InputDataReader(
+                Constants.DATA_DIR + "SyntheticHhld_withourImpSamp.csv"))
             {
-                string[] currStrTok = ((string)currPool[0]).Split(',');
-                int indx = 0;
-                string currKey = "";
-                if (zonalControlTotals.ContainsKey(currStrTok[1]))
+                ArrayList currPool = new ArrayList();
+                RandomNumberGen currRandGen = new RandomNumberGen();
+                using (var currOutputFile = new OutputFileWritter(Constants.DATA_DIR + "PopulationRealization20k.csv"))
                 {
-                    currKey = (string)currStrTok[1];
-                    indx = (int)zonalControlTotals[currKey];
-                    ArrayList currRandList = currRandGen.GetNNumbersInRange(0,
-                        Constants.POOL_COUNT - 1, indx);
-                    for (int i = 0; i < currRandList.Count; i++)
+                    currOutputFile.WriteToFile("HhldID,SectorID,HhldSize,NbOfWorkers,"
+                                + "NbofKids,NbofUnivDegree,IncLvl,NumbCars,"
+                                + "DwellTyp(PopSynt),EPFL_SectorID,BuildingID");
+                    while(currReader.LoadZonalPopulationPool(currPool) == true)
                     {
-                        string[] hhldValues = ((string)
-                            currPool[(int)currRandList[i]]).Split(',');
-                        int bld = Int16.Parse(hhldValues[9]) + 1;
-                        currOutputFile.WriteToFile(hhldValues[0] + "," + hhldValues[1]
-                                + "," + hhldValues[3] + "," + hhldValues[4]
-                                + "," + hhldValues[5] + "," + hhldValues[6]
-                                + "," + hhldValues[7] + "," + hhldValues[8]
-                                + "," + hhldValues[9] + ","
-                                + hhldValues[2] + "," + hhldValues[2]
-                                + "0" + bld);
+                        string[] currStrTok = ((string)currPool[0]).Split(',');
+                        int indx = 0;
+                        string currKey = "";
+                        if(zonalControlTotals.ContainsKey(currStrTok[1]))
+                        {
+                            currKey = (string)currStrTok[1];
+                            indx = (int)zonalControlTotals[currKey];
+                            ArrayList currRandList = currRandGen.GetNNumbersInRange(0,
+                                Constants.POOL_COUNT - 1, indx);
+                            for(int i = 0; i < currRandList.Count; i++)
+                            {
+                                string[] hhldValues = ((string)
+                                    currPool[(int)currRandList[i]]).Split(',');
+                                int bld = Int16.Parse(hhldValues[9]) + 1;
+                                currOutputFile.WriteToFile(hhldValues[0] + "," + hhldValues[1]
+                                        + "," + hhldValues[3] + "," + hhldValues[4]
+                                        + "," + hhldValues[5] + "," + hhldValues[6]
+                                        + "," + hhldValues[7] + "," + hhldValues[8]
+                                        + "," + hhldValues[9] + ","
+                                        + hhldValues[2] + "," + hhldValues[2]
+                                        + "0" + bld);
+                            }
+                        }
+                        currPool.Clear();
                     }
                 }
-                currPool.Clear();
             }
-            currOutputFile.CloseFile();
-            currReader.CloseFile();
         }
 
-        protected struct ZonalStat
+        internal struct ZonalStat
         {
-            public string zoneName;
-            public double count;
-            public double sum;
+            public string ZoneName;
+            public double Count;
+            public double Sum;
         }
 
         public void ComputeCommuneLevelStatisticsIncome(string poplFile)
@@ -561,20 +532,20 @@ namespace SimulationObjects
 
             Hashtable currIncome = new Hashtable();
 
-            StreamWriter currOutputFile = new 
+            StreamWriter currOutputFile = new
                 StreamWriter(Constants.DATA_DIR + "CommuneStatisticsIncome.csv");
             string currHhld;
             currReader.ReadLine();
-            while (!currReader.EndOfStream)
+            while(!currReader.EndOfStream)
             {
                 currHhld = currReader.ReadLine();
                 string[] currHhldTok = currHhld.Split(',');
                 string currsector = currHhldTok[1].Substring(0, 5);
-                if (currIncome.Contains(currsector))
+                if(currIncome.Contains(currsector))
                 {
-                    ZonalStat currStat = (ZonalStat) currIncome[currsector];
-                    currStat.count++;
-                    currStat.sum += Int32.Parse(currHhldTok[6]);
+                    ZonalStat currStat = (ZonalStat)currIncome[currsector];
+                    currStat.Count++;
+                    currStat.Sum += Int32.Parse(currHhldTok[6]);
                     currIncome[currsector] = currStat;
                     int cntUn = int.Parse(currHhldTok[5]);
                     int cntTot = int.Parse(currHhldTok[2]);
@@ -583,20 +554,20 @@ namespace SimulationObjects
                 else
                 {
                     ZonalStat currStat = new ZonalStat();
-                    currStat.zoneName = currsector;
-                    currStat.sum = Int32.Parse(currHhldTok[6]);
-                    currStat.count = 1;
-                    currIncome.Add(currsector,currStat);
+                    currStat.ZoneName = currsector;
+                    currStat.Sum = Int32.Parse(currHhldTok[6]);
+                    currStat.Count = 1;
+                    currIncome.Add(currsector, currStat);
 
                 }
             }
 
             currOutputFile.WriteLine("Commune,Income");
-            foreach (DictionaryEntry ent in currIncome)
+            foreach(DictionaryEntry ent in currIncome)
             {
                 ZonalStat curSt = (ZonalStat)ent.Value;
-                currOutputFile.WriteLine(curSt.zoneName +","+
-                    curSt.sum / curSt.count);
+                currOutputFile.WriteLine(curSt.ZoneName + "," +
+                    curSt.Sum / curSt.Count);
             }
             currReader.Close();
             currOutputFile.Close();
@@ -604,634 +575,634 @@ namespace SimulationObjects
 
         public void DiscretizeIncomeAgain(string poplFile)
         {
-            StreamReader currReader = new StreamReader(poplFile);
-
-            Hashtable currIncome = new Hashtable();
-
-            StreamWriter currOutputFile = new
-                StreamWriter(Constants.DATA_DIR + "BrusselsPopulation_DiscIncome.csv");
-            string currHhld;
-            currOutputFile.WriteLine(currReader.ReadLine()+",IncLvl");
-            while (!currReader.EndOfStream)
+            using (var currReader = new StreamReader(poplFile))
             {
-                currHhld = currReader.ReadLine();
-                string[] currHhldTok = currHhld.Split(',');
-                Int32 currIncomeVal = Int32.Parse(currHhldTok[6]);
+                Hashtable currIncome = new Hashtable();
 
-                if (currIncomeVal < 745 )
+                using (var currOutputFile = new
+                    StreamWriter(Constants.DATA_DIR + "BrusselsPopulation_DiscIncome.csv"))
                 {
-                    currHhld += ",0";
+                    string currHhld;
+                    currOutputFile.WriteLine(currReader.ReadLine() + ",IncLvl");
+                    while(!currReader.EndOfStream)
+                    {
+                        currHhld = currReader.ReadLine();
+                        string[] currHhldTok = currHhld.Split(',');
+                        Int32 currIncomeVal = Int32.Parse(currHhldTok[6]);
+
+                        if(currIncomeVal < 745)
+                        {
+                            currHhld += ",0";
+                        }
+                        else if(currIncomeVal >= 745 && currIncomeVal < 1860)
+                        {
+                            currHhld += ",1";
+                        }
+                        else if(currIncomeVal >= 1860 && currIncomeVal < 3100)
+                        {
+                            currHhld += ",2";
+                        }
+                        else if(currIncomeVal >= 3100 && currIncomeVal < 4959)
+                        {
+                            currHhld += ",3";
+                        }
+                        else if(currIncomeVal >= 4959)
+                        {
+                            currHhld += ",4";
+                        }
+                        currOutputFile.WriteLine(currHhld);
+                    }
+
                 }
-                else if (currIncomeVal >= 745 && currIncomeVal < 1860)
-                {
-                    currHhld += ",1";
-                }
-                else if (currIncomeVal >= 1860 && currIncomeVal < 3100)
-                {
-                    currHhld += ",2";
-                }
-                else if (currIncomeVal >= 3100 && currIncomeVal < 4959)
-                {
-                    currHhld += ",3";
-                }
-                else if (currIncomeVal >= 4959)
-                {
-                    currHhld += ",4";
-                }
-                currOutputFile.WriteLine(currHhld);
             }
-
-            currOutputFile.Close();
-            currReader.Close();
         }
 
         public void ComputeCommuneLevelStatisticsDiscInc(string poplFile, int category)
         {
-            StreamReader currReader = new StreamReader(poplFile);
-
-            Hashtable currEdu = new Hashtable();
-
-            StreamWriter currOutputFile = new
-                StreamWriter(Constants.DATA_DIR + "CommuneStatistics4IncLvl.csv");
-            string currHhld;
-            currReader.ReadLine();
-            while (!currReader.EndOfStream)
+            using (var currReader = new StreamReader(poplFile))
             {
-                currHhld = currReader.ReadLine();
-                string[] currHhldTok = currHhld.Split(',');
-                string currsector = currHhldTok[1].Substring(0, 5);
-                int cntUn = int.Parse(currHhldTok[11]);
-                if (currEdu.Contains(currsector) && cntUn == category)
-                {
-                    ZonalStat currStat = (ZonalStat)currEdu[currsector];
-                    currStat.count++;
-                    currEdu[currsector] = currStat;
-                }
-                else if (cntUn == category)
-                {
-                    ZonalStat currStat = new ZonalStat();
-                    currStat.zoneName = currsector;
-                    currStat.count = 1;
-                    currEdu.Add(currsector, currStat);
+                Hashtable currEdu = new Hashtable();
 
+                using (var currOutputFile = new
+                    StreamWriter(Constants.DATA_DIR + "CommuneStatistics4IncLvl.csv"))
+                {
+                    string currHhld;
+                    currReader.ReadLine();
+                    while(!currReader.EndOfStream)
+                    {
+                        currHhld = currReader.ReadLine();
+                        string[] currHhldTok = currHhld.Split(',');
+                        string currsector = currHhldTok[1].Substring(0, 5);
+                        int cntUn = int.Parse(currHhldTok[11]);
+                        if(currEdu.Contains(currsector) && cntUn == category)
+                        {
+                            ZonalStat currStat = (ZonalStat)currEdu[currsector];
+                            currStat.Count++;
+                            currEdu[currsector] = currStat;
+                        }
+                        else if(cntUn == category)
+                        {
+                            ZonalStat currStat = new ZonalStat();
+                            currStat.ZoneName = currsector;
+                            currStat.Count = 1;
+                            currEdu.Add(currsector, currStat);
+
+                        }
+                    }
+
+                    currOutputFile.WriteLine("Commune,IncLvl4");
+                    foreach(DictionaryEntry ent in currEdu)
+                    {
+                        ZonalStat curSt = (ZonalStat)ent.Value;
+                        currOutputFile.WriteLine(curSt.ZoneName + "," +
+                            curSt.Count);
+                    }
                 }
             }
-
-            currOutputFile.WriteLine("Commune,IncLvl4");
-            foreach (DictionaryEntry ent in currEdu)
-            {
-                ZonalStat curSt = (ZonalStat)ent.Value;
-                currOutputFile.WriteLine(curSt.zoneName + "," +
-                    curSt.count);
-            }
-            currReader.Close();
-            currOutputFile.Close();
         }
 
         public void ComputeCommuneLevelStatisticsEdu(string poplFile, int category)
         {
-            StreamReader currReader = new StreamReader(poplFile);
-
-            Hashtable currEdu = new Hashtable();
-
-            StreamWriter currOutputFile = new
-                StreamWriter(Constants.DATA_DIR + "CommuneStatistics2High.csv");
-            string currHhld;
-            currReader.ReadLine();
-            while (!currReader.EndOfStream)
+            using (var currReader = new StreamReader(poplFile))
             {
-                currHhld = currReader.ReadLine();
-                string[] currHhldTok = currHhld.Split(',');
-                string currsector = currHhldTok[1].Substring(0, 5);
-                int cntUn = int.Parse(currHhldTok[5]);
-                if (currEdu.Contains(currsector) && cntUn == category)
-                {
-                    ZonalStat currStat = (ZonalStat)currEdu[currsector];
-                    currStat.count++;
-                    currEdu[currsector] = currStat;
-                }
-                else if ( cntUn == category)
-                {
-                    ZonalStat currStat = new ZonalStat();
-                    currStat.zoneName = currsector;
-                    currStat.count = 1;
-                    currEdu.Add(currsector, currStat);
+                Hashtable currEdu = new Hashtable();
 
+                using (var currOutputFile = new
+                    StreamWriter(Constants.DATA_DIR + "CommuneStatistics2High.csv"))
+                {
+                    string currHhld;
+                    currReader.ReadLine();
+                    while(!currReader.EndOfStream)
+                    {
+                        currHhld = currReader.ReadLine();
+                        string[] currHhldTok = currHhld.Split(',');
+                        string currsector = currHhldTok[1].Substring(0, 5);
+                        int cntUn = int.Parse(currHhldTok[5]);
+                        if(currEdu.Contains(currsector) && cntUn == category)
+                        {
+                            ZonalStat currStat = (ZonalStat)currEdu[currsector];
+                            currStat.Count++;
+                            currEdu[currsector] = currStat;
+                        }
+                        else if(cntUn == category)
+                        {
+                            ZonalStat currStat = new ZonalStat();
+                            currStat.ZoneName = currsector;
+                            currStat.Count = 1;
+                            currEdu.Add(currsector, currStat);
+
+                        }
+                    }
+
+                    currOutputFile.WriteLine("Commune,Edu2");
+                    foreach(DictionaryEntry ent in currEdu)
+                    {
+                        ZonalStat curSt = (ZonalStat)ent.Value;
+                        currOutputFile.WriteLine(curSt.ZoneName + "," +
+                            curSt.Count);
+                    }
                 }
             }
-
-            currOutputFile.WriteLine("Commune,Edu2");
-            foreach (DictionaryEntry ent in currEdu)
-            {
-                ZonalStat curSt = (ZonalStat)ent.Value;
-                currOutputFile.WriteLine(curSt.zoneName + "," +
-                    curSt.count);
-            }
-            currReader.Close();
-            currOutputFile.Close();
         }
 
         public void ComputeCommuneLevelStatisticsPeople(string poplFile, int category)
         {
-            StreamReader currReader = new StreamReader(poplFile);
-
-            Hashtable currEdu = new Hashtable();
-
-            StreamWriter currOutputFile = new
-                StreamWriter(Constants.DATA_DIR + "CommuneStatistics5Per.csv");
-            string currHhld;
-            currReader.ReadLine();
-            while (!currReader.EndOfStream)
+            using (var currReader = new StreamReader(poplFile))
             {
-                currHhld = currReader.ReadLine();
-                string[] currHhldTok = currHhld.Split(',');
-                string currsector = currHhldTok[1].Substring(0, 5);
-                int cntUn = int.Parse(currHhldTok[2]);
-                if (currEdu.Contains(currsector) && cntUn == category)
-                {
-                    ZonalStat currStat = (ZonalStat)currEdu[currsector];
-                    currStat.count++;
-                    currEdu[currsector] = currStat;
-                }
-                else if (cntUn == category)
-                {
-                    ZonalStat currStat = new ZonalStat();
-                    currStat.zoneName = currsector;
-                    currStat.count = 1;
-                    currEdu.Add(currsector, currStat);
+                Hashtable currEdu = new Hashtable();
 
+                using (var currOutputFile = new
+                    StreamWriter(Constants.DATA_DIR + "CommuneStatistics5Per.csv"))
+                {
+                    string currHhld;
+                    currReader.ReadLine();
+                    while(!currReader.EndOfStream)
+                    {
+                        currHhld = currReader.ReadLine();
+                        string[] currHhldTok = currHhld.Split(',');
+                        string currsector = currHhldTok[1].Substring(0, 5);
+                        int cntUn = int.Parse(currHhldTok[2]);
+                        if(currEdu.Contains(currsector) && cntUn == category)
+                        {
+                            ZonalStat currStat = (ZonalStat)currEdu[currsector];
+                            currStat.Count++;
+                            currEdu[currsector] = currStat;
+                        }
+                        else if(cntUn == category)
+                        {
+                            ZonalStat currStat = new ZonalStat();
+                            currStat.ZoneName = currsector;
+                            currStat.Count = 1;
+                            currEdu.Add(currsector, currStat);
+
+                        }
+                    }
+
+                    currOutputFile.WriteLine("Commune,People5");
+                    foreach(DictionaryEntry ent in currEdu)
+                    {
+                        ZonalStat curSt = (ZonalStat)ent.Value;
+                        currOutputFile.WriteLine(curSt.ZoneName + "," +
+                            curSt.Count);
+                    }
                 }
             }
-
-            currOutputFile.WriteLine("Commune,People5");
-            foreach (DictionaryEntry ent in currEdu)
-            {
-                ZonalStat curSt = (ZonalStat)ent.Value;
-                currOutputFile.WriteLine(curSt.zoneName + "," +
-                    curSt.count);
-            }
-            currReader.Close();
-            currOutputFile.Close();
         }
 
         public void ComputeCommuneLevelStatisticsPeople(string poplFile,
                     string fileNam, string comList)
         {
-            StreamReader currReader = new StreamReader(poplFile);
-            StreamReader currComuneList = new StreamReader(comList);
-            Hashtable currPerM = new Hashtable();
-            Hashtable currPerF = new Hashtable();
-            Hashtable currPerTwo = new Hashtable();
-            Hashtable currPerThree = new Hashtable();
-            Hashtable currPerFour = new Hashtable();
-            Hashtable currPerFive = new Hashtable();
-
-            StreamWriter currOutputFile = new
-                StreamWriter(fileNam);
-            string currHhld;
-            currReader.ReadLine();
-            while (!currReader.EndOfStream)
+            using (StreamReader currReader = new StreamReader(poplFile))
+            using (StreamReader currComuneList = new StreamReader(comList))
+            using (StreamWriter currOutputFile = new StreamWriter(fileNam))
             {
-                currHhld = currReader.ReadLine();
-                string[] currHhldTok = currHhld.Split(',');
-                string currsector = currHhldTok[1].Substring(0, 5);
-                int cntUn = int.Parse(currHhldTok[2]);
-                if (currPerM.Contains(currsector) && cntUn == 0)
+                Hashtable currPerM = new Hashtable();
+                Hashtable currPerF = new Hashtable();
+                Hashtable currPerTwo = new Hashtable();
+                Hashtable currPerThree = new Hashtable();
+                Hashtable currPerFour = new Hashtable();
+                Hashtable currPerFive = new Hashtable();
+                string currHhld;
+                currReader.ReadLine();
+                while(!currReader.EndOfStream)
                 {
-                    ZonalStat currStat = (ZonalStat)currPerM[currsector];
-                    currStat.count++;
-                    currPerM[currsector] = currStat;
-                }
-                else if (cntUn == 0)
-                {
-                    ZonalStat currStat = new ZonalStat();
-                    currStat.zoneName = currsector;
-                    currStat.count = 1;
-                    currPerM.Add(currsector, currStat);
+                    currHhld = currReader.ReadLine();
+                    string[] currHhldTok = currHhld.Split(',');
+                    string currsector = currHhldTok[1].Substring(0, 5);
+                    int cntUn = int.Parse(currHhldTok[2]);
+                    if(currPerM.Contains(currsector) && cntUn == 0)
+                    {
+                        ZonalStat currStat = (ZonalStat)currPerM[currsector];
+                        currStat.Count++;
+                        currPerM[currsector] = currStat;
+                    }
+                    else if(cntUn == 0)
+                    {
+                        ZonalStat currStat = new ZonalStat();
+                        currStat.ZoneName = currsector;
+                        currStat.Count = 1;
+                        currPerM.Add(currsector, currStat);
 
-                }
-                if (currPerF.Contains(currsector) && cntUn == 1)
-                {
-                    ZonalStat currStat = (ZonalStat)currPerF[currsector];
-                    currStat.count++;
-                    currPerF[currsector] = currStat;
-                }
-                else if (cntUn == 1)
-                {
-                    ZonalStat currStat = new ZonalStat();
-                    currStat.zoneName = currsector;
-                    currStat.count = 1;
-                    currPerF.Add(currsector, currStat);
+                    }
+                    if(currPerF.Contains(currsector) && cntUn == 1)
+                    {
+                        ZonalStat currStat = (ZonalStat)currPerF[currsector];
+                        currStat.Count++;
+                        currPerF[currsector] = currStat;
+                    }
+                    else if(cntUn == 1)
+                    {
+                        ZonalStat currStat = new ZonalStat();
+                        currStat.ZoneName = currsector;
+                        currStat.Count = 1;
+                        currPerF.Add(currsector, currStat);
 
-                }
-                if (currPerTwo.Contains(currsector) && cntUn == 2)
-                {
-                    ZonalStat currStat = (ZonalStat)currPerTwo[currsector];
-                    currStat.count++;
-                    currPerTwo[currsector] = currStat;
-                }
-                else if (cntUn == 2)
-                {
-                    ZonalStat currStat = new ZonalStat();
-                    currStat.zoneName = currsector;
-                    currStat.count = 1;
-                    currPerTwo.Add(currsector, currStat);
-                }
-                if (currPerThree.Contains(currsector) && cntUn == 3)
-                {
-                    ZonalStat currStat = (ZonalStat)currPerThree[currsector];
-                    currStat.count++;
-                    currPerThree[currsector] = currStat;
-                }
-                else if (cntUn == 3)
-                {
-                    ZonalStat currStat = new ZonalStat();
-                    currStat.zoneName = currsector;
-                    currStat.count = 1;
-                    currPerThree.Add(currsector, currStat);
+                    }
+                    if(currPerTwo.Contains(currsector) && cntUn == 2)
+                    {
+                        ZonalStat currStat = (ZonalStat)currPerTwo[currsector];
+                        currStat.Count++;
+                        currPerTwo[currsector] = currStat;
+                    }
+                    else if(cntUn == 2)
+                    {
+                        ZonalStat currStat = new ZonalStat();
+                        currStat.ZoneName = currsector;
+                        currStat.Count = 1;
+                        currPerTwo.Add(currsector, currStat);
+                    }
+                    if(currPerThree.Contains(currsector) && cntUn == 3)
+                    {
+                        ZonalStat currStat = (ZonalStat)currPerThree[currsector];
+                        currStat.Count++;
+                        currPerThree[currsector] = currStat;
+                    }
+                    else if(cntUn == 3)
+                    {
+                        ZonalStat currStat = new ZonalStat();
+                        currStat.ZoneName = currsector;
+                        currStat.Count = 1;
+                        currPerThree.Add(currsector, currStat);
 
-                }
-                if (currPerFour.Contains(currsector) && cntUn == 4)
-                {
-                    ZonalStat currStat = (ZonalStat)currPerFour[currsector];
-                    currStat.count++;
-                    currPerFour[currsector] = currStat;
-                }
-                else if (cntUn == 4)
-                {
-                    ZonalStat currStat = new ZonalStat();
-                    currStat.zoneName = currsector;
-                    currStat.count = 1;
-                    currPerFour.Add(currsector, currStat);
+                    }
+                    if(currPerFour.Contains(currsector) && cntUn == 4)
+                    {
+                        ZonalStat currStat = (ZonalStat)currPerFour[currsector];
+                        currStat.Count++;
+                        currPerFour[currsector] = currStat;
+                    }
+                    else if(cntUn == 4)
+                    {
+                        ZonalStat currStat = new ZonalStat();
+                        currStat.ZoneName = currsector;
+                        currStat.Count = 1;
+                        currPerFour.Add(currsector, currStat);
 
-                }
-                if (currPerFive.Contains(currsector) && cntUn == 5)
-                {
-                    ZonalStat currStat = (ZonalStat)currPerFive[currsector];
-                    currStat.count++;
-                    currPerFive[currsector] = currStat;
-                }
-                else if (cntUn == 5)
-                {
-                    ZonalStat currStat = new ZonalStat();
-                    currStat.zoneName = currsector;
-                    currStat.count = 1;
-                    currPerFive.Add(currsector, currStat);
+                    }
+                    if(currPerFive.Contains(currsector) && cntUn == 5)
+                    {
+                        ZonalStat currStat = (ZonalStat)currPerFive[currsector];
+                        currStat.Count++;
+                        currPerFive[currsector] = currStat;
+                    }
+                    else if(cntUn == 5)
+                    {
+                        ZonalStat currStat = new ZonalStat();
+                        currStat.ZoneName = currsector;
+                        currStat.Count = 1;
+                        currPerFive.Add(currsector, currStat);
 
+                    }
+                }
+                currOutputFile.WriteLine("Commune,Male,Female,Per2,Per3,Per4,Per5");
+                string str = currComuneList.ReadLine();
+
+                while(!currComuneList.EndOfStream)
+                {
+                    str = currComuneList.ReadLine();
+                    string strConcat = str;
+                    if(currPerM.Contains(str))
+                    {
+                        ZonalStat curSt = (ZonalStat)currPerM[str];
+                        strConcat += "," + curSt.Count.ToString();
+                    }
+                    else
+                    {
+                        strConcat += ",0";
+                    }
+
+                    if(currPerF.Contains(str))
+                    {
+                        ZonalStat curSt = (ZonalStat)currPerF[str];
+                        strConcat += "," + curSt.Count.ToString();
+                    }
+                    else
+                    {
+                        strConcat += ",0";
+                    }
+
+                    if(currPerTwo.Contains(str))
+                    {
+                        ZonalStat curSt = (ZonalStat)currPerTwo[str];
+                        strConcat += "," + curSt.Count.ToString();
+                    }
+                    else
+                    {
+                        strConcat += ",0";
+                    }
+
+                    if(currPerThree.Contains(str))
+                    {
+                        ZonalStat curSt = (ZonalStat)currPerThree[str];
+                        strConcat += "," + curSt.Count.ToString();
+                    }
+                    else
+                    {
+                        strConcat += ",0";
+                    }
+                    if(currPerFour.Contains(str))
+                    {
+                        ZonalStat curSt = (ZonalStat)currPerFour[str];
+                        strConcat += "," + curSt.Count.ToString();
+                    }
+                    else
+                    {
+                        strConcat += ",0";
+                    }
+                    if(currPerFive.Contains(str))
+                    {
+                        ZonalStat curSt = (ZonalStat)currPerFive[str];
+                        strConcat += "," + curSt.Count.ToString();
+                    }
+                    else
+                    {
+                        strConcat += ",0";
+                    }
+                    currOutputFile.WriteLine(strConcat);
                 }
             }
-            currOutputFile.WriteLine("Commune,Male,Female,Per2,Per3,Per4,Per5");
-            string str = currComuneList.ReadLine();
-
-            while (!currComuneList.EndOfStream)
-            {
-                str = currComuneList.ReadLine();
-                string strConcat = str;
-                if (currPerM.Contains(str))
-                {
-                    ZonalStat curSt = (ZonalStat)currPerM[str];
-                    strConcat += "," + curSt.count.ToString();
-                }
-                else
-                {
-                    strConcat += ",0";
-                }
-
-                if (currPerF.Contains(str))
-                {
-                    ZonalStat curSt = (ZonalStat)currPerF[str];
-                    strConcat += "," + curSt.count.ToString();
-                }
-                else
-                {
-                    strConcat += ",0";
-                }
-
-                if (currPerTwo.Contains(str))
-                {
-                    ZonalStat curSt = (ZonalStat)currPerTwo[str];
-                    strConcat += "," + curSt.count.ToString();
-                }
-                else
-                {
-                    strConcat += ",0";
-                }
-
-                if (currPerThree.Contains(str))
-                {
-                    ZonalStat curSt = (ZonalStat)currPerThree[str];
-                    strConcat += "," + curSt.count.ToString();
-                }
-                else
-                {
-                    strConcat += ",0";
-                }
-                if (currPerFour.Contains(str))
-                {
-                    ZonalStat curSt = (ZonalStat)currPerFour[str];
-                    strConcat += "," + curSt.count.ToString();
-                }
-                else
-                {
-                    strConcat += ",0";
-                }
-                if (currPerFive.Contains(str))
-                {
-                    ZonalStat curSt = (ZonalStat)currPerFive[str];
-                    strConcat += "," + curSt.count.ToString();
-                }
-                else
-                {
-                    strConcat += ",0";
-                }
-                currOutputFile.WriteLine(strConcat);
-            }
-
-            currReader.Close();
-            currComuneList.Close();
-            currOutputFile.Close();
         }
 
-        public void ComputeCommuneLevelStatisticsCars(string poplFile, 
+        public void ComputeCommuneLevelStatisticsCars(string poplFile,
                             string fileNam, string comList)
         {
-            StreamReader currReader = new StreamReader(poplFile);
-            StreamReader currComuneList = new StreamReader(comList);
-            Hashtable currCarZero = new Hashtable();
-            Hashtable currCarOne = new Hashtable();
-            Hashtable currCarTwo = new Hashtable();
-            Hashtable currCarThree = new Hashtable();
- 
-            StreamWriter currOutputFile = new
-                StreamWriter(fileNam);
-            string currHhld;
-            currReader.ReadLine();
-            while (!currReader.EndOfStream)
+            using (StreamReader currReader = new StreamReader(poplFile))
+            using (StreamReader currComuneList = new StreamReader(comList))
+            using (StreamWriter currOutputFile = new StreamWriter(fileNam))
             {
-                currHhld = currReader.ReadLine();
-                string[] currHhldTok = currHhld.Split(',');
-                string currsector = currHhldTok[1].Substring(0, 5);
-                int cntUn = int.Parse(currHhldTok[7]);
-                if (currCarZero.Contains(currsector) && cntUn == 0)
-                {
-                    ZonalStat currStat = (ZonalStat)currCarZero[currsector];
-                    currStat.count++;
-                    currCarZero[currsector] = currStat;
-                }
-                else if (cntUn == 0)
-                {
-                    ZonalStat currStat = new ZonalStat();
-                    currStat.zoneName = currsector;
-                    currStat.count = 1;
-                    currCarZero.Add(currsector, currStat);
+                Hashtable currCarZero = new Hashtable();
+                Hashtable currCarOne = new Hashtable();
+                Hashtable currCarTwo = new Hashtable();
+                Hashtable currCarThree = new Hashtable();
 
-                }
-                if (currCarOne.Contains(currsector) && cntUn == 1)
-                {
-                    ZonalStat currStat = (ZonalStat)currCarOne[currsector];
-                    currStat.count++;
-                    currCarOne[currsector] = currStat;
-                }
-                else if (cntUn == 1)
-                {
-                    ZonalStat currStat = new ZonalStat();
-                    currStat.zoneName = currsector;
-                    currStat.count = 1;
-                    currCarOne.Add(currsector, currStat);
 
-                }
-                if (currCarTwo.Contains(currsector) && cntUn == 2)
+                string currHhld;
+                currReader.ReadLine();
+                while(!currReader.EndOfStream)
                 {
-                    ZonalStat currStat = (ZonalStat)currCarTwo[currsector];
-                    currStat.count++;
-                    currCarTwo[currsector] = currStat;
-                }
-                else if (cntUn == 2)
-                {
-                    ZonalStat currStat = new ZonalStat();
-                    currStat.zoneName = currsector;
-                    currStat.count = 1;
-                    currCarTwo.Add(currsector, currStat);
-                }
-                if (currCarThree.Contains(currsector) && cntUn == 3)
-                {
-                    ZonalStat currStat = (ZonalStat)currCarThree[currsector];
-                    currStat.count++;
-                    currCarThree[currsector] = currStat;
-                }
-                else if (cntUn == 3)
-                {
-                    ZonalStat currStat = new ZonalStat();
-                    currStat.zoneName = currsector;
-                    currStat.count = 1;
-                    currCarThree.Add(currsector, currStat);
+                    currHhld = currReader.ReadLine();
+                    string[] currHhldTok = currHhld.Split(',');
+                    string currsector = currHhldTok[1].Substring(0, 5);
+                    int cntUn = int.Parse(currHhldTok[7]);
+                    if(currCarZero.Contains(currsector) && cntUn == 0)
+                    {
+                        ZonalStat currStat = (ZonalStat)currCarZero[currsector];
+                        currStat.Count++;
+                        currCarZero[currsector] = currStat;
+                    }
+                    else if(cntUn == 0)
+                    {
+                        ZonalStat currStat = new ZonalStat();
+                        currStat.ZoneName = currsector;
+                        currStat.Count = 1;
+                        currCarZero.Add(currsector, currStat);
 
+                    }
+                    if(currCarOne.Contains(currsector) && cntUn == 1)
+                    {
+                        ZonalStat currStat = (ZonalStat)currCarOne[currsector];
+                        currStat.Count++;
+                        currCarOne[currsector] = currStat;
+                    }
+                    else if(cntUn == 1)
+                    {
+                        ZonalStat currStat = new ZonalStat();
+                        currStat.ZoneName = currsector;
+                        currStat.Count = 1;
+                        currCarOne.Add(currsector, currStat);
+
+                    }
+                    if(currCarTwo.Contains(currsector) && cntUn == 2)
+                    {
+                        ZonalStat currStat = (ZonalStat)currCarTwo[currsector];
+                        currStat.Count++;
+                        currCarTwo[currsector] = currStat;
+                    }
+                    else if(cntUn == 2)
+                    {
+                        ZonalStat currStat = new ZonalStat();
+                        currStat.ZoneName = currsector;
+                        currStat.Count = 1;
+                        currCarTwo.Add(currsector, currStat);
+                    }
+                    if(currCarThree.Contains(currsector) && cntUn == 3)
+                    {
+                        ZonalStat currStat = (ZonalStat)currCarThree[currsector];
+                        currStat.Count++;
+                        currCarThree[currsector] = currStat;
+                    }
+                    else if(cntUn == 3)
+                    {
+                        ZonalStat currStat = new ZonalStat();
+                        currStat.ZoneName = currsector;
+                        currStat.Count = 1;
+                        currCarThree.Add(currsector, currStat);
+
+                    }
+                }
+                currOutputFile.WriteLine("Commune,Car0,Car1,Car2,Car3");
+                string str = currComuneList.ReadLine();
+
+                while(!currComuneList.EndOfStream)
+                {
+                    str = currComuneList.ReadLine();
+                    string strConcat = str;
+                    if(currCarZero.Contains(str))
+                    {
+                        ZonalStat curSt = (ZonalStat)currCarZero[str];
+                        strConcat += "," + curSt.Count.ToString();
+                    }
+                    else
+                    {
+                        strConcat += ",0";
+                    }
+
+                    if(currCarOne.Contains(str))
+                    {
+                        ZonalStat curSt = (ZonalStat)currCarOne[str];
+                        strConcat += "," + curSt.Count.ToString();
+                    }
+                    else
+                    {
+                        strConcat += ",0";
+                    }
+
+                    if(currCarTwo.Contains(str))
+                    {
+                        ZonalStat curSt = (ZonalStat)currCarTwo[str];
+                        strConcat += "," + curSt.Count.ToString();
+                    }
+                    else
+                    {
+                        strConcat += ",0";
+                    }
+
+                    if(currCarThree.Contains(str))
+                    {
+                        ZonalStat curSt = (ZonalStat)currCarThree[str];
+                        strConcat += "," + curSt.Count.ToString();
+                    }
+                    else
+                    {
+                        strConcat += ",0";
+                    }
+                    currOutputFile.WriteLine(strConcat);
                 }
             }
-            currOutputFile.WriteLine("Commune,Car0,Car1,Car2,Car3");
-            string str = currComuneList.ReadLine();
-            
-            while (!currComuneList.EndOfStream)
-            {
-                str = currComuneList.ReadLine();
-                string strConcat = str;
-                if(currCarZero.Contains(str))
-                {
-                    ZonalStat curSt = (ZonalStat)currCarZero[str];
-                    strConcat += "," + curSt.count.ToString();
-                }
-                else
-                {
-                    strConcat += ",0";
-                }
-
-                if (currCarOne.Contains(str))
-                {
-                    ZonalStat curSt = (ZonalStat)currCarOne[str];
-                    strConcat += "," + curSt.count.ToString();
-                }
-                else
-                {
-                    strConcat += ",0";
-                }
-
-                if (currCarTwo.Contains(str))
-                {
-                    ZonalStat curSt = (ZonalStat)currCarTwo[str];
-                    strConcat += "," + curSt.count.ToString();
-                }
-                else
-                {
-                    strConcat += ",0";
-                }
-
-                if (currCarThree.Contains(str))
-                {
-                    ZonalStat curSt = (ZonalStat)currCarThree[str];
-                    strConcat += "," + curSt.count.ToString();
-                }
-                else
-                {
-                    strConcat += ",0";
-                }
-                currOutputFile.WriteLine(strConcat);
-            }
-
-            currReader.Close();
-            currComuneList.Close();
-            currOutputFile.Close();
         }
 
-        public ArrayList ComputeCommuneMCStatsCars(int runNum, int seed, 
+        public List<Dictionary<string, ZonalStat>> ComputeCommuneMCStatsCars(int runNum, int seed,
                             string poolFileName, bool delRealizations)
         {
             string poplFile = Constants.DATA_DIR +
                             "Household\\PopulationRealization" + runNum.ToString() + ".csv";
-            CreatePopulationByDwellingType(seed,poolFileName,poplFile);
+            CreatePopulationByDwellingType(seed, poolFileName, poplFile);
             StreamReader currReader = new StreamReader(poplFile);
-            Hashtable currCarZero = new Hashtable();
-            Hashtable currCarOne = new Hashtable();
-            Hashtable currCarTwo = new Hashtable();
-            Hashtable currCarThree = new Hashtable();
+            var currCarZero = new Dictionary<string, ZonalStat>();
+            var currCarOne = new Dictionary<string, ZonalStat>();
+            var currCarTwo = new Dictionary<string, ZonalStat>();
+            var currCarThree = new Dictionary<string, ZonalStat>();
             string currHhld;
             currReader.ReadLine();
-            while (!currReader.EndOfStream)
+            while(!currReader.EndOfStream)
             {
                 currHhld = currReader.ReadLine();
                 string[] currHhldTok = currHhld.Split(',');
                 string currsector = currHhldTok[1].Substring(0, 5);
                 int cntUn = int.Parse(currHhldTok[7]);
-                if (currCarZero.Contains(currsector) && cntUn == 0)
+                if(currCarZero.ContainsKey(currsector) && cntUn == 0)
                 {
-                    ZonalStat currStat = (ZonalStat)currCarZero[currsector];
-                    currStat.count++;
+                    var currStat = currCarZero[currsector];
+                    currStat.Count++;
                     currCarZero[currsector] = currStat;
                 }
-                else if (cntUn == 0)
+                else if(cntUn == 0)
                 {
-                    ZonalStat currStat = new ZonalStat();
-                    currStat.zoneName = currsector;
-                    currStat.count = 1;
+                    var currStat = new ZonalStat();
+                    currStat.ZoneName = currsector;
+                    currStat.Count = 1;
                     currCarZero.Add(currsector, currStat);
 
                 }
-                if (currCarOne.Contains(currsector) && cntUn == 1)
+                if(currCarOne.ContainsKey(currsector) && cntUn == 1)
                 {
-                    ZonalStat currStat = (ZonalStat)currCarOne[currsector];
-                    currStat.count++;
+                    ZonalStat currStat = currCarOne[currsector];
+                    currStat.Count++;
                     currCarOne[currsector] = currStat;
                 }
-                else if (cntUn == 1)
+                else if(cntUn == 1)
                 {
                     ZonalStat currStat = new ZonalStat();
-                    currStat.zoneName = currsector;
-                    currStat.count = 1;
+                    currStat.ZoneName = currsector;
+                    currStat.Count = 1;
                     currCarOne.Add(currsector, currStat);
 
                 }
-                if (currCarTwo.Contains(currsector) && cntUn == 2)
+                if(currCarTwo.ContainsKey(currsector) && cntUn == 2)
                 {
                     ZonalStat currStat = (ZonalStat)currCarTwo[currsector];
-                    currStat.count++;
+                    currStat.Count++;
                     currCarTwo[currsector] = currStat;
                 }
-                else if (cntUn == 2)
+                else if(cntUn == 2)
                 {
                     ZonalStat currStat = new ZonalStat();
-                    currStat.zoneName = currsector;
-                    currStat.count = 1;
+                    currStat.ZoneName = currsector;
+                    currStat.Count = 1;
                     currCarTwo.Add(currsector, currStat);
                 }
-                if (currCarThree.Contains(currsector) && cntUn == 3)
+                if(currCarThree.ContainsKey(currsector) && cntUn == 3)
                 {
                     ZonalStat currStat = (ZonalStat)currCarThree[currsector];
-                    currStat.count++;
+                    currStat.Count++;
                     currCarThree[currsector] = currStat;
                 }
-                else if (cntUn == 3)
+                else if(cntUn == 3)
                 {
                     ZonalStat currStat = new ZonalStat();
-                    currStat.zoneName = currsector;
-                    currStat.count = 1;
+                    currStat.ZoneName = currsector;
+                    currStat.Count = 1;
                     currCarThree.Add(currsector, currStat);
 
                 }
             }
 
-            ArrayList currArrayList = new ArrayList();
+            var currArrayList = new List<Dictionary<string, ZonalStat>>();
             currArrayList.Add(currCarZero);
             currArrayList.Add(currCarOne);
             currArrayList.Add(currCarTwo);
             currArrayList.Add(currCarThree);
             currReader.Close();
-            if (delRealizations == true)
+            if(delRealizations == true)
             {
                 File.Delete(poplFile);
             }
             return currArrayList;
         }
 
-        public void WriteMCStatsToFile(string CommuneList, ArrayList RunsOutput,
+        public void WriteMCStatsToFile(string CommuneList, List<Dictionary<string, World.ZonalStat>> RunsOutput,
                                 int category)
         {
-            StreamReader currComuneList = new StreamReader(CommuneList);
-            StreamWriter currOutputFile = new
-                StreamWriter(Constants.DATA_DIR + 
-                "CommuneStatistics_Cars"+category+".csv");
-
-            //currOutputFile.WriteLine("Commune,Car0,Car1,Car2,Car3");
-            string str = currComuneList.ReadLine();
-
-            while (!currComuneList.EndOfStream)
+            using (StreamReader currComuneList = new StreamReader(CommuneList))
+            using (StreamWriter currOutputFile = new
+                StreamWriter(Constants.DATA_DIR +
+                "CommuneStatistics_Cars" + category + ".csv"))
             {
-                str = currComuneList.ReadLine();
-                string strConcat = str;
-                for (int j = 0; j < RunsOutput.Count; j++)
+                //currOutputFile.WriteLine("Commune,Car0,Car1,Car2,Car3");
+                string str = currComuneList.ReadLine();
+                StringBuilder strConcat = new StringBuilder();
+                while(!currComuneList.EndOfStream)
                 {
-                    Hashtable currStat = (Hashtable)RunsOutput[j];
-                    if (currStat.Contains(str))
+                    str = currComuneList.ReadLine();
+                    strConcat.Append(str);
+                    for(int j = 0; j < RunsOutput.Count; j++)
                     {
-                        ZonalStat curSt = (ZonalStat)currStat[str];
-                        strConcat += "," + curSt.count.ToString();
+                        ZonalStat curSt;
+                        Dictionary<string, ZonalStat> currStat = RunsOutput[j];
+                        if(currStat.TryGetValue(str, out curSt))
+                        {
+                            strConcat.Append(",");
+                            strConcat.Append(curSt.Count);
+                        }
+                        else
+                        {
+                            strConcat.Append(",0");
+                        }
                     }
-                    else
-                    {
-                        strConcat += ",0";
-                    }
+                    currOutputFile.WriteLine(strConcat);
+                    strConcat.Clear();
                 }
-                currOutputFile.WriteLine(strConcat);
             }
-
-            currComuneList.Close();
-            currOutputFile.Close();
         }
 
-        public void CreatePersonPopulation(string popPoolFileNm, 
+        public void CreatePersonPopulation(string popPoolFileNm,
                             string outFileNm, int cnt)
         {
-            TextReader currReader = new StreamReader(popPoolFileNm);
-            currReader.ReadLine();
-            RandomNumberGen currRandGen = new RandomNumberGen();
-            TextWriter currOutputFile = new StreamWriter(outFileNm);
-            currOutputFile.WriteLine("ID,Age,Sex,HhldSize,Edu_Lvl");
-            string currInStr;
-            int currCnt = 0;
-            while ((currInStr = currReader.ReadLine()) != null)
+            using (TextReader currReader = new StreamReader(popPoolFileNm))
             {
-                string[] currStrTok = currInStr.Split(',');
-
-                if (currRandGen.NextDouble() < 0.5 && currCnt < cnt)
+                currReader.ReadLine();
+                RandomNumberGen currRandGen = new RandomNumberGen();
+                using (TextWriter currOutputFile = new StreamWriter(outFileNm))
                 {
-                    currCnt++;
-                    currOutputFile.WriteLine(currStrTok[0] 
-                                            + "," + currStrTok[2]
-                                            + "," + currStrTok[3]
-                                            + "," + currStrTok[4]
-                                            + "," + currStrTok[5]);
+                    currOutputFile.WriteLine("ID,Age,Sex,HhldSize,Edu_Lvl");
+                    string currInStr;
+                    int currCnt = 0;
+                    while((currInStr = currReader.ReadLine()) != null)
+                    {
+                        string[] currStrTok = currInStr.Split(',');
+
+                        if(currRandGen.NextDouble() < 0.5 && currCnt < cnt)
+                        {
+                            currCnt++;
+                            currOutputFile.WriteLine(currStrTok[0]
+                                                    + "," + currStrTok[2]
+                                                    + "," + currStrTok[3]
+                                                    + "," + currStrTok[4]
+                                                    + "," + currStrTok[5]);
+                        }
+                    }
                 }
             }
-            currOutputFile.Close();
-            currReader.Close();
         }
 
         public void ComputeSectorLevelStatistics(string poplFile, int sectIndx,
@@ -1242,39 +1213,40 @@ namespace SimulationObjects
             Hashtable currDimension = new Hashtable();
 
             StreamWriter currOutputFile = new
-                StreamWriter(Constants.DATA_DIR 
-                            + "SectorStatistics"+dimIndx+".csv");
+                StreamWriter(Constants.DATA_DIR
+                            + "SectorStatistics" + dimIndx + ".csv");
             string currHhld;
             currReader.ReadLine();
-            for (int i = 1001; i < 5946; i++)
+            for(int i = 1001; i < 5946; i++)
             {
                 currDimension.Add(i.ToString(), new Hashtable());
             }
-            while (!currReader.EndOfStream)
+            while(!currReader.EndOfStream)
             {
                 currHhld = currReader.ReadLine();
                 string[] currHhldTok = currHhld.Split(',');
                 string currsector = currHhldTok[sectIndx];
                 /*if (currDimension.Contains(currsector))
                 {*/
-                    Hashtable currData = (Hashtable) currDimension[currsector];
-                    if(currData.Contains(currHhldTok[dimIndx]))
-                    {
-                        KeyValPair currStat = (KeyValPair)
-                            currData[currHhldTok[dimIndx]];
-                        currStat.value++;
-                        currData[currHhldTok[dimIndx]] = currStat;
-                        currDimension[currsector] = currData;
-                    }else
-                    {
-                        KeyValPair currStat = new KeyValPair();
-                        currStat.category = currHhldTok[dimIndx];
-                        currStat.value = 1;
-                        Hashtable currCat = (Hashtable) 
-                                currDimension[currsector];
-                        currCat.Add(currStat.category, currStat);
-                        currDimension[currsector] = currCat;
-                    }
+                Hashtable currData = (Hashtable)currDimension[currsector];
+                if(currData.Contains(currHhldTok[dimIndx]))
+                {
+                    KeyValPair currStat = (KeyValPair)
+                        currData[currHhldTok[dimIndx]];
+                    currStat.value++;
+                    currData[currHhldTok[dimIndx]] = currStat;
+                    currDimension[currsector] = currData;
+                }
+                else
+                {
+                    KeyValPair currStat = new KeyValPair();
+                    currStat.category = currHhldTok[dimIndx];
+                    currStat.value = 1;
+                    Hashtable currCat = (Hashtable)
+                            currDimension[currsector];
+                    currCat.Add(currStat.category, currStat);
+                    currDimension[currsector] = currCat;
+                }
                 /*}
                 else
                 {
@@ -1287,18 +1259,18 @@ namespace SimulationObjects
                 }*/
             }
             string firstRow = "Sector";
-            for (int i = 0; i < catCnt; i++)
+            for(int i = 0; i < catCnt; i++)
             {
                 firstRow += "," + i.ToString();
             }
             currOutputFile.WriteLine(firstRow);
-            foreach (DictionaryEntry ent in currDimension)
+            foreach(DictionaryEntry ent in currDimension)
             {
-                Hashtable catEnt = (Hashtable) ent.Value;
-                string curString = (string) ent.Key;
+                Hashtable catEnt = (Hashtable)ent.Value;
+                string curString = (string)ent.Key;
                 for(int i = 0; i < catCnt; i++)
                 {
-                    if (catEnt.Contains(i.ToString()))
+                    if(catEnt.Contains(i.ToString()))
                     {
                         KeyValPair curSt = (KeyValPair)catEnt[i.ToString()];
                         curString += "," +
@@ -1318,21 +1290,21 @@ namespace SimulationObjects
         // [BF] make it proper
         private void LoadMarginalsForDwellings()
         {
-            TextReader myFileReader = new StreamReader(Constants.DATA_DIR+
+            TextReader myFileReader = new StreamReader(Constants.DATA_DIR +
             "Household\\CensusDwellingType.csv");
             string strTok;
             myFileReader.ReadLine();
-            while ((strTok = myFileReader.ReadLine()) != null)
+            while((strTok = myFileReader.ReadLine()) != null)
             {
                 string[] strToken = strTok.Split(',');
-                double n_sep =  Double.Parse(strToken[1]);
-                double n_sem =  Double.Parse(strToken[2]);
+                double n_sep = Double.Parse(strToken[1]);
+                double n_sem = Double.Parse(strToken[2]);
                 double n_att = Double.Parse(strToken[3]);
                 double n_app = Double.Parse(strToken[4]);
                 double sumD = n_sep + n_sem + n_att + n_app;
                 SpatialZone currZone = (SpatialZone)myZonalCollection[strToken[0]];
-                
-                if (sumD == 0)
+
+                if(sumD == 0)
                 {
                     currZone.myDwellMarginal.AddValue(
                         "0", 0.25);
@@ -1372,7 +1344,7 @@ namespace SimulationObjects
             "Household\\CensusNumOfCars.csv");
             string strTok;
             myFileReader.ReadLine();
-            while ((strTok = myFileReader.ReadLine()) != null)
+            while((strTok = myFileReader.ReadLine()) != null)
             {
                 string[] strToken = strTok.Split(',');
                 double n_zero = Double.Parse(strToken[1]);
@@ -1381,7 +1353,7 @@ namespace SimulationObjects
                 double n_three = Double.Parse(strToken[4]);
                 double sumD = n_zero + n_one + n_two + n_three;
                 SpatialZone currZone = (SpatialZone)myZonalCollection[strToken[0]];
-                if (sumD == 0.00)
+                if(sumD == 0.00)
                 {
                     currZone.myCarsMarginal.AddValue(
                         "0", 0.4);
@@ -1413,7 +1385,7 @@ namespace SimulationObjects
             "Household\\CensusNumOfPers.csv");
             string strTok;
             myFileReader.ReadLine();
-            while ((strTok = myFileReader.ReadLine()) != null)
+            while((strTok = myFileReader.ReadLine()) != null)
             {
                 string[] strToken = strTok.Split(',');
                 double n_zero = Double.Parse(strToken[1]);
@@ -1423,11 +1395,11 @@ namespace SimulationObjects
                 double n_four = Double.Parse(strToken[5]);
                 double n_five = Double.Parse(strToken[6]);
 
-                double sumD = 
+                double sumD =
                     n_zero + n_one + n_two + n_three + n_four + n_five;
-                SpatialZone currZone = 
+                SpatialZone currZone =
                     (SpatialZone)myZonalCollection[strToken[0]];
-                if (sumD == 0.00)
+                if(sumD == 0.00)
                 {
                     currZone.myPersonMarginal.AddValue(
                         "0", 0.4);
@@ -1467,10 +1439,10 @@ namespace SimulationObjects
             "Person\\CensusHhldSize2Marginal.csv");
             string strTok;
             myFileReader.ReadLine();
-            while ((strTok = myFileReader.ReadLine()) != null)
+            while((strTok = myFileReader.ReadLine()) != null)
             {
                 string[] strToken = strTok.Split(',');
-                if (strToken[0] != "1004")
+                if(strToken[0] != "1004")
                 {
                     continue;
                 }
@@ -1485,7 +1457,7 @@ namespace SimulationObjects
                     n_zero + n_one + n_two + n_three + n_four + n_five;
                 SpatialZone currZone =
                     (SpatialZone)myZonalCollection[strToken[0]];
-                if (sumD == 0.00)
+                if(sumD == 0.00)
                 {
                     /*currZone.myHhldSize2Marginal.AddValue(
                         "0", 0.15);
@@ -1525,10 +1497,10 @@ namespace SimulationObjects
             "Person\\CensusAgeMarginal.csv");
             string strTok;
             myFileReader.ReadLine();
-            while ((strTok = myFileReader.ReadLine()) != null)
+            while((strTok = myFileReader.ReadLine()) != null)
             {
                 string[] strToken = strTok.Split(',');
-                if (strToken[0] != "1004")
+                if(strToken[0] != "1004")
                 {
                     continue;
                 }
@@ -1546,7 +1518,7 @@ namespace SimulationObjects
                     + n_six + n_seven;
                 SpatialZone currZone =
                     (SpatialZone)myZonalCollection[strToken[0]];
-                if (sumD == 0.00)
+                if(sumD == 0.00)
                 {
                     /*currZone.myHhldSize2Marginal.AddValue(
                         "0", 0.15);
@@ -1590,10 +1562,10 @@ namespace SimulationObjects
             "Person\\CensusSexMarginal.csv");
             string strTok;
             myFileReader.ReadLine();
-            while ((strTok = myFileReader.ReadLine()) != null)
+            while((strTok = myFileReader.ReadLine()) != null)
             {
                 string[] strToken = strTok.Split(',');
-                if (strToken[0] != "1004")
+                if(strToken[0] != "1004")
                 {
                     continue;
                 }
@@ -1603,7 +1575,7 @@ namespace SimulationObjects
                 double sumD = n_zero + n_one;
                 SpatialZone currZone =
                     (SpatialZone)myZonalCollection[strToken[0]];
-                if (sumD == 0.00)
+                if(sumD == 0.00)
                 {
                     /*currZone.myHhldSize2Marginal.AddValue(
                         "0", 0.15);
@@ -1635,10 +1607,10 @@ namespace SimulationObjects
             "Person\\CensusEducationMarginal.csv");
             string strTok;
             myFileReader.ReadLine();
-            while ((strTok = myFileReader.ReadLine()) != null)
+            while((strTok = myFileReader.ReadLine()) != null)
             {
                 string[] strToken = strTok.Split(',');
-                if (strToken[0] != "1004")
+                if(strToken[0] != "1004")
                 {
                     continue;
                 }
@@ -1650,7 +1622,7 @@ namespace SimulationObjects
                 double sumD = n_zero + n_one;
                 SpatialZone currZone =
                     (SpatialZone)myZonalCollection[strToken[0]];
-                if (sumD == 0.00)
+                if(sumD == 0.00)
                 {
                     /*currZone.myHhldSize2Marginal.AddValue(
                         "0", 0.15);

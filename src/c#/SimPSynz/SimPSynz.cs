@@ -25,7 +25,7 @@ namespace Program
             AgentType curTyp = new AgentType();
             curTyp = AgentType.Person;
             CreateUsingSimulation(curTyp);
-            CreateConditionalsFromSample();
+            //CreateConditionalsFromSample();
             //CreateUsingIPF(curTyp);
 
             ////////////////////////////////
@@ -125,31 +125,31 @@ namespace Program
             //////////////////////////////////////////////
 
             ///////////////////////
-            ArrayList RunsListZero = new ArrayList();
-            ArrayList RunsListOne = new ArrayList();
-            ArrayList RunsListTwo = new ArrayList();
-            ArrayList RunsListThree = new ArrayList();
+            var runsListZero = new List<Dictionary<string, World.ZonalStat>>();
+            var runsListOne = new List<Dictionary<string, World.ZonalStat>>();
+            var runsListTwo = new List<Dictionary<string, World.ZonalStat>>();
+            var runsListThree = new List<Dictionary<string, World.ZonalStat>>();
 
             for (int i = 0; i < 50; i++)
             {
-                ArrayList CurrTotals = currWorld.ComputeCommuneMCStatsCars(
+                var CurrTotals = currWorld.ComputeCommuneMCStatsCars(
                                                 i, (int) DateTime.Now.Ticks,
                                                 Constants.DATA_DIR
                                      + "Household\\SyntheticHhld.csv", false);
-                RunsListZero.Add(CurrTotals[0]);
-                RunsListOne.Add(CurrTotals[1]);
-                RunsListTwo.Add(CurrTotals[2]);
-                RunsListThree.Add(CurrTotals[3]);
+                runsListZero.Add(CurrTotals[0]);
+                runsListOne.Add(CurrTotals[1]);
+                runsListTwo.Add(CurrTotals[2]);
+                runsListThree.Add(CurrTotals[3]);
             }
 
             currWorld.WriteMCStatsToFile(Constants.DATA_DIR +
-                        "Household\\CommuneList.csv", RunsListZero, 0);
+                        "Household\\CommuneList.csv", runsListZero, 0);
             currWorld.WriteMCStatsToFile(Constants.DATA_DIR +
-                        "Household\\CommuneList.csv", RunsListOne, 1);
+                        "Household\\CommuneList.csv", runsListOne, 1);
             currWorld.WriteMCStatsToFile(Constants.DATA_DIR +
-                        "Household\\CommuneList.csv", RunsListTwo, 2);
+                        "Household\\CommuneList.csv", runsListTwo, 2);
             currWorld.WriteMCStatsToFile(Constants.DATA_DIR +
-                        "Household\\CommuneList.csv", RunsListThree, 3);
+                        "Household\\CommuneList.csv", runsListThree, 3);
             //////////////////////////////
 
 

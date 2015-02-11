@@ -1,4 +1,4 @@
-/*
+﻿/*
  * created by: b farooq, poly montreal
  * on: 22 october, 2013
  * last edited by: b farooq, poly montreal
@@ -8,27 +8,28 @@
  */
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.IO;
 
 namespace PopulationSynthesis.Utils
 {
-    sealed class ConditionalDataReader : IDisposable
+    sealed class OutputFileWritter : IDisposable
     {
+        TextWriter FileWriter;
 
-        TextReader FileReader;
-
-        public ConditionalDataReader(string fileName)
+        public OutputFileWritter(string fileName)
         {
-            FileReader = new StreamReader(fileName);
+            FileWriter = new StreamWriter(fileName);
         }
 
-        public string GetNextRow()
+        public void WriteToFile(string currOutput)
         {
-            return FileReader.ReadLine();
+            FileWriter.WriteLine(currOutput);
         }
 
-        ~ConditionalDataReader()
+        ~OutputFileWritter()
         {
             Dispose(false);
         }
@@ -39,10 +40,10 @@ namespace PopulationSynthesis.Utils
             {
                 GC.SuppressFinalize(this);
             }
-            if(FileReader != null)
+            if(FileWriter != null)
             {
-                FileReader.Dispose();
-                FileReader = null;
+                FileWriter.Dispose();
+                FileWriter = null;
             }
         }
 
@@ -52,4 +53,3 @@ namespace PopulationSynthesis.Utils
         }
     }
 }
-

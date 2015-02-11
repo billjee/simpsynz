@@ -17,46 +17,38 @@ using SimulationObjects;
 
 namespace PopulationSynthesis.Utils
 {
-    class InputDataReader : FileManager
+    sealed class InputDataReader : IDisposable
     {
-        TextReader myFileReader;
-        ArrayList conditionalNames;
+        TextReader FileReader;
+        List<string> ConditionalNames;
 
-        public InputDataReader()
+        public InputDataReader(string fileName)
         {
-            conditionalNames = new ArrayList();
+            ConditionalNames = new List<string>();
+            FileReader = new StreamReader(fileName);
         }
-        public override void OpenFile(string fileName)
-        {
-            myFileReader = new StreamReader(fileName);
-        }
-        public override void CloseFile()
-        {
-            myFileReader.Close();
-        }
-
 
         // Should be called before fillCollection1
         public void GetConditionalList()
         {
-            string strTok = myFileReader.ReadLine();
+            string strTok = FileReader.ReadLine();
             string[] strs = strTok.Split(',');
             for (int i = 1; i < strs.Length; i++)
             {
-                conditionalNames.Add(strs[i]);
+                ConditionalNames.Add(strs[i]);
             }
         }
 
         // For zone by zone information (conditionals as columns)
         public string FillCollection1(DiscreteCondDistribution currColl)
         {
-            string strTok = myFileReader.ReadLine();
+            string strTok = FileReader.ReadLine();
             if (strTok != null)
             {
                 string[] strColl = strTok.Split(',');
-                for (int i = 0; i < conditionalNames.Count; i++)
+                for (int i = 0; i < ConditionalNames.Count; i++)
                 {
-                    string currCond = (string) conditionalNames[i];
+                    string currCond = (string) ConditionalNames[i];
                     string[] currDimVal = currCond.Split(
                         Utils.Constants.CATEGORY_DELIMITER[0]);
 
@@ -71,8 +63,8 @@ namespace PopulationSynthesis.Utils
         // For 1 values for all zones (conditionals as rows)
         public void FillCollection2(DiscreteCondDistribution currColl)
         {
-            string strTok = myFileReader.ReadLine();
-            while ((strTok = myFileReader.ReadLine()) != null)
+            string strTok = FileReader.ReadLine();
+            while ((strTok = FileReader.ReadLine()) != null)
             {
                 string[] strToken = strTok.Split(',');
                 int j = strToken[0].IndexOf(
@@ -96,7 +88,7 @@ namespace PopulationSynthesis.Utils
         {
             string strTok;
             int i = 0;
-            while ((strTok = myFileReader.ReadLine()) != null
+            while ((strTok = FileReader.ReadLine()) != null
                     && i < Constants.POOL_COUNT)
             {
                 currPopPool.Add(strTok);
@@ -114,7 +106,7 @@ namespace PopulationSynthesis.Utils
         {
             string strTok;
             int i = 0;
-            while ((strTok = myFileReader.ReadLine()) != null
+            while ((strTok = FileReader.ReadLine()) != null
                     && i < Constants.POOL_COUNT)
             {
                 string [] xStrs = strTok.Split(',');
@@ -139,8 +131,8 @@ namespace PopulationSynthesis.Utils
         public void FillControlTotals(Hashtable currTable)
         {
             string strTok;
-            myFileReader.ReadLine();
-            while ((strTok = myFileReader.ReadLine()) != null)
+            FileReader.ReadLine();
+            while ((strTok = FileReader.ReadLine()) != null)
             {
                 string[] strToken = strTok.Split(',');
                 if (!currTable.ContainsKey(strToken[0]))
@@ -153,8 +145,8 @@ namespace PopulationSynthesis.Utils
         public void FillControlTotalsByDwellType(Hashtable currTable)
         {
             string strTok;
-            myFileReader.ReadLine();
-            while ((strTok = myFileReader.ReadLine()) != null)
+            FileReader.ReadLine();
+            while ((strTok = FileReader.ReadLine()) != null)
             {
                 string[] strToken = strTok.Split(',');
                 if (!currTable.ContainsKey(strToken[0]))
@@ -167,8 +159,8 @@ namespace PopulationSynthesis.Utils
         public void FillZonalData(Hashtable currTable)
         {
             string strTok;
-            myFileReader.ReadLine();
-            while ((strTok = myFileReader.ReadLine()) != null)
+            FileReader.ReadLine();
+            while ((strTok = FileReader.ReadLine()) != null)
             {
                 string[] strToken = strTok.Split(',');
                 if (!currTable.ContainsKey(strToken[0]))
@@ -189,6 +181,29 @@ namespace PopulationSynthesis.Utils
 
                 }
             }
+        }
+
+        ~InputDataReader()
+        {
+            Dispose(false);
+        }
+
+        private void Dispose(bool managed)
+        {
+            if(managed)
+            {
+                GC.SuppressFinalize(this);
+            }
+            if(FileReader != null)
+            {
+                FileReader.Dispose();
+                FileReader = null;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
         }
     }
 }

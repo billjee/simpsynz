@@ -29,17 +29,17 @@ namespace Samplers
             ConditionalDistribution g_x, string dimension,
             SimulationObject prvAgent, SpatialZone currZone)
         {
-            if (prvAgent.GetAgentType() == AgentType.Household)
+            switch(prvAgent.GetAgentType())
             {
-                return GetNextAgentHousehold(
-                    f_x, g_x, dimension, (Household) prvAgent, currZone);
-            }
-            else if (prvAgent.GetAgentType() == AgentType.Person)
-            {
-                return GetNextAgentPerson(
+                case AgentType.Household:
+                    return GetNextAgentHousehold(
+                    f_x, g_x, dimension, (Household)prvAgent, currZone);
+                case AgentType.Person:
+                    return GetNextAgentPerson(
                     f_x, g_x, dimension, (Person)prvAgent, currZone);
+                default:
+                    return null;
             }
-            return null;
         }
 
         public Household GetNextAgentHousehold(DiscreteMarginalDistribution f_x, 
@@ -111,7 +111,7 @@ namespace Samplers
             {
                 if (randVal <= ((KeyValPair)curCom[i]).Value)
                 {
-                    KeyValPair myPair = new KeyValPair();
+                    KeyValPair myPair;
                     myPair.Category = ((KeyValPair)curCom[i]).Category;
                     myPair.Value = curG_X.GetValue(curG_X.GetDimensionName(),
                             myPair.Category,

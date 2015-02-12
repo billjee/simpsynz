@@ -156,7 +156,7 @@ namespace PopulationSynthesis.Utils
             }
         }
 
-        public void FillZonalData(Hashtable currTable)
+        public void FillZonalData(Dictionary<string,SpatialZone> currTable)
         {
             string strTok;
             FileReader.ReadLine();

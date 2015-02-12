@@ -15,6 +15,7 @@ using System.Text;
 using System.IO;
 using PopulationSynthesis.Utils;
 using Samplers;
+using System.Threading;
 
 namespace SimulationObjects
 {
@@ -37,23 +38,19 @@ namespace SimulationObjects
 
         private OutputFileWritter agentsOutputFile;
 
-        private Hashtable myZonalCollection;
-        private ArrayList myHhldsPool;
-        private ArrayList myPersonPool;
+        private Dictionary<string, SpatialZone> ZonalCollection;
+        private List<SimulationObject> HhldsPool;
+        private List<SimulationObject> PersonPool;
 
         private static uint idCounter = 0;
 
         private Hashtable zonalControlTotals;
-        private GibbsSampler myGibbsSampler;
 
         public World()
         {
-            myID = ++idCounter;
-            myHhldsPool = new ArrayList();
-            myPersonPool = new ArrayList();
-            myZonalCollection = new Hashtable();
-
-            myGibbsSampler = new GibbsSampler();
+            HhldsPool = new List<SimulationObject>();
+            PersonPool = new List<SimulationObject>();
+            ZonalCollection = new Dictionary<string, SpatialZone>();
         }
 
         public void Initialize(bool createPool, AgentType currType)
@@ -99,7 +96,7 @@ namespace SimulationObjects
             }
             else if(currType == AgentType.Person)
             {
-                foreach(DictionaryEntry ent in myZonalCollection)
+                foreach(var ent in ZonalCollection)
                 {
                     OpenCensusFiles(currType);
                     SpatialZone currZone = (SpatialZone)ent.Value;
@@ -111,7 +108,7 @@ namespace SimulationObjects
                 LoadMarginalsForSex();
                 LoadMarginalsForEducation();
             }
-            GC.KeepAlive(myZonalCollection);
+            GC.KeepAlive(ZonalCollection);
         }
 
         void LoadPesronCensusData(SpatialZone currZone)
@@ -205,7 +202,6 @@ namespace SimulationObjects
         {
             if(currType == AgentType.Household)
             {
-
                 CensusDwellFileReader.Dispose();
                 CensusCarFileReader.Dispose();
                 CensusPersonFileReader.Dispose();
@@ -225,29 +221,32 @@ namespace SimulationObjects
             {
                 uint agentsCreated = 1;
                 uint counter = 0;
-                ArrayList mobelCond = new ArrayList();
-                mobelCond.Add((ConditionalDistribution)mobelWrkrsConditionals);
-                mobelCond.Add((ConditionalDistribution)mobelKidsConditionals);
-                mobelCond.Add((ConditionalDistribution)mobelPersConditionals);
-
-                foreach(DictionaryEntry entry in myZonalCollection)
+                var mobelCond = new List<ConditionalDistribution>()
                 {
+                    mobelWrkrsConditionals,
+                    mobelKidsConditionals,
+                    mobelPersConditionals
+                };
+
+                foreach(var entry in ZonalCollection)
+                {
+                    GibbsSampler sampler = new GibbsSampler();
                     SpatialZone currZone = (SpatialZone)entry.Value;
                     // warmup time
-                    myGibbsSampler.GenerateAgents(currZone,
+                    sampler.GenerateAgents(currZone,
                                     Constants.WARMUP_ITERATIONS,
                                     new Household(currZone.GetName()), true,
                                     mobelCond,
                                     agentsOutputFile);
-                    myHhldsPool.Clear();
-                    myGibbsSampler.SetAgentCounter(agentsCreated + counter);
+                    HhldsPool.Clear();
+                    sampler.SetAgentCounter(agentsCreated + counter);
                     // actual generation
-                    myHhldsPool = myGibbsSampler.GenerateAgents(currZone,
+                    HhldsPool = sampler.GenerateAgents(currZone,
                                     Constants.POOL_COUNT,
                                     new Household(currZone.GetName()), false,
                                     mobelCond,
                                     agentsOutputFile);
-                    agentsCreated += (uint)myHhldsPool.Count;
+                    agentsCreated += (uint)HhldsPool.Count;
                 }
             }
         }
@@ -256,32 +255,28 @@ namespace SimulationObjects
         {
             using (var agentsOutputFile = new OutputFileWritter(fileName))
             {
-                uint agentsCreated = 1;
-                uint counter = 0;
-                ArrayList mobelCond = new ArrayList();
-
-                foreach(DictionaryEntry entry in myZonalCollection)
+                var mobelCond = new List<ConditionalDistribution>();
+                foreach(var entry in ZonalCollection)
                 {
                     SpatialZone currZone = (SpatialZone)entry.Value;
+                    GibbsSampler sampler = new GibbsSampler();
                     if(currZone.GetName() != "1004")
                     {
                         continue;
                     }
                     // warmup time
-                    myGibbsSampler.GenerateAgents(currZone,
+                    sampler.GenerateAgents(currZone,
                                     Constants.WARMUP_ITERATIONS,
                                     new Person(currZone.GetName()), true,
                                     mobelCond,
                                     agentsOutputFile);
-                    myPersonPool.Clear();
-                    myGibbsSampler.SetAgentCounter(agentsCreated + counter);
+                    PersonPool.Clear();
                     // actual generation
-                    myPersonPool = myGibbsSampler.GenerateAgents(currZone,
+                    PersonPool = sampler.GenerateAgents(currZone,
                                     Constants.POOL_COUNT,
                                     new Person(currZone.GetName()), false,
                                     mobelCond,
                                     agentsOutputFile);
-                    agentsCreated += (uint)myPersonPool.Count;
                 }
             }
         }
@@ -293,7 +288,7 @@ namespace SimulationObjects
                 using (var currReader = new InputDataReader(
                     Constants.DATA_DIR + "Household\\CensusZonalData.csv"))
                 {
-                    currReader.FillZonalData(myZonalCollection);
+                    currReader.FillZonalData(ZonalCollection);
                 }
             }
             else if(CurrType == AgentType.Person)
@@ -306,19 +301,19 @@ namespace SimulationObjects
         {
             SpatialZone currZone = new SpatialZone();
             currZone.SetName("1004");
-            myZonalCollection.Add("1004", currZone);
+            ZonalCollection.Add("1004", currZone);
 
             currZone = new SpatialZone();
             currZone.SetName("1007");
-            myZonalCollection.Add("1007", currZone);
+            ZonalCollection.Add("1007", currZone);
 
             currZone = new SpatialZone();
             currZone.SetName("1018");
-            myZonalCollection.Add("1018", currZone);
+            ZonalCollection.Add("1018", currZone);
 
             currZone = new SpatialZone();
             currZone.SetName("1020");
-            myZonalCollection.Add("1020", currZone);
+            ZonalCollection.Add("1020", currZone);
         }
 
         public void CreatePopulationByDwellingType(int seed, string poolfileName,
@@ -1184,7 +1179,7 @@ namespace SimulationObjects
                 RandomNumberGen currRandGen = new RandomNumberGen();
                 using (TextWriter currOutputFile = new StreamWriter(outFileNm))
                 {
-                    currOutputFile.WriteLine("ID,Age,Sex,HhldSize,Edu_Lvl");
+                    currOutputFile.WriteLine("Age,Sex,HhldSize,Edu_Lvl");
                     string currInStr;
                     int currCnt = 0;
                     while((currInStr = currReader.ReadLine()) != null)
@@ -1197,8 +1192,7 @@ namespace SimulationObjects
                             currOutputFile.WriteLine(currStrTok[0]
                                                     + "," + currStrTok[2]
                                                     + "," + currStrTok[3]
-                                                    + "," + currStrTok[4]
-                                                    + "," + currStrTok[5]);
+                                                    + "," + currStrTok[4]);
                         }
                     }
                 }
@@ -1233,18 +1227,18 @@ namespace SimulationObjects
                 {
                     KeyValPair currStat = (KeyValPair)
                         currData[currHhldTok[dimIndx]];
-                    currStat.value++;
+                    currStat.Value++;
                     currData[currHhldTok[dimIndx]] = currStat;
                     currDimension[currsector] = currData;
                 }
                 else
                 {
                     KeyValPair currStat = new KeyValPair();
-                    currStat.category = currHhldTok[dimIndx];
-                    currStat.value = 1;
+                    currStat.Category = currHhldTok[dimIndx];
+                    currStat.Value = 1;
                     Hashtable currCat = (Hashtable)
                             currDimension[currsector];
-                    currCat.Add(currStat.category, currStat);
+                    currCat.Add(currStat.Category, currStat);
                     currDimension[currsector] = currCat;
                 }
                 /*}
@@ -1274,7 +1268,7 @@ namespace SimulationObjects
                     {
                         KeyValPair curSt = (KeyValPair)catEnt[i.ToString()];
                         curString += "," +
-                            ((int)curSt.value).ToString();
+                            ((int)curSt.Value).ToString();
                     }
                     else
                     {
@@ -1302,7 +1296,7 @@ namespace SimulationObjects
                 double n_att = Double.Parse(strToken[3]);
                 double n_app = Double.Parse(strToken[4]);
                 double sumD = n_sep + n_sem + n_att + n_app;
-                SpatialZone currZone = (SpatialZone)myZonalCollection[strToken[0]];
+                SpatialZone currZone = (SpatialZone)ZonalCollection[strToken[0]];
 
                 if(sumD == 0)
                 {
@@ -1352,7 +1346,7 @@ namespace SimulationObjects
                 double n_two = Double.Parse(strToken[3]);
                 double n_three = Double.Parse(strToken[4]);
                 double sumD = n_zero + n_one + n_two + n_three;
-                SpatialZone currZone = (SpatialZone)myZonalCollection[strToken[0]];
+                SpatialZone currZone = (SpatialZone)ZonalCollection[strToken[0]];
                 if(sumD == 0.00)
                 {
                     currZone.myCarsMarginal.AddValue(
@@ -1398,7 +1392,7 @@ namespace SimulationObjects
                 double sumD =
                     n_zero + n_one + n_two + n_three + n_four + n_five;
                 SpatialZone currZone =
-                    (SpatialZone)myZonalCollection[strToken[0]];
+                    (SpatialZone)ZonalCollection[strToken[0]];
                 if(sumD == 0.00)
                 {
                     currZone.myPersonMarginal.AddValue(
@@ -1456,7 +1450,7 @@ namespace SimulationObjects
                 double sumD =
                     n_zero + n_one + n_two + n_three + n_four + n_five;
                 SpatialZone currZone =
-                    (SpatialZone)myZonalCollection[strToken[0]];
+                    (SpatialZone)ZonalCollection[strToken[0]];
                 if(sumD == 0.00)
                 {
                     /*currZone.myHhldSize2Marginal.AddValue(
@@ -1517,7 +1511,7 @@ namespace SimulationObjects
                     n_zero + n_one + n_two + n_three + n_four + n_five
                     + n_six + n_seven;
                 SpatialZone currZone =
-                    (SpatialZone)myZonalCollection[strToken[0]];
+                    (SpatialZone)ZonalCollection[strToken[0]];
                 if(sumD == 0.00)
                 {
                     /*currZone.myHhldSize2Marginal.AddValue(
@@ -1574,7 +1568,7 @@ namespace SimulationObjects
 
                 double sumD = n_zero + n_one;
                 SpatialZone currZone =
-                    (SpatialZone)myZonalCollection[strToken[0]];
+                    (SpatialZone)ZonalCollection[strToken[0]];
                 if(sumD == 0.00)
                 {
                     /*currZone.myHhldSize2Marginal.AddValue(
@@ -1621,7 +1615,7 @@ namespace SimulationObjects
 
                 double sumD = n_zero + n_one;
                 SpatialZone currZone =
-                    (SpatialZone)myZonalCollection[strToken[0]];
+                    (SpatialZone)ZonalCollection[strToken[0]];
                 if(sumD == 0.00)
                 {
                     /*currZone.myHhldSize2Marginal.AddValue(

@@ -117,8 +117,6 @@ namespace SimulationObjects
 
         public Household()
         {
-            myID = ++idCounter;
-
             myHhhldSize = HouseholdSize.TwoPersons;
             myDwellType = DwellingType.SemiAttached;
             myNumOfCars = NumOfCars.OneCar;
@@ -127,14 +125,12 @@ namespace SimulationObjects
             myNumofUnivDeg = NumWithUnivDeg.None;
             myIncomeLevel = IncomeLevel.SeventyFiveToOneTwentyFive;
             myIncome = 80000;
-            myType = AgentType.Household;
+            Type = AgentType.Household;
         }
 
         public Household(string currZone)
         {
             myZoneID = currZone;
-            myID = ++idCounter;
-
             myHhhldSize = HouseholdSize.TwoPersons;
             myDwellType = DwellingType.SemiAttached;
             myNumOfCars = NumOfCars.OneCar;
@@ -143,7 +139,7 @@ namespace SimulationObjects
             myNumofUnivDeg = NumWithUnivDeg.One;
             myIncomeLevel = IncomeLevel.SeventyFiveToOneTwentyFive;
             myIncome = 80000;
-            myType = AgentType.Household;
+            Type = AgentType.Household;
         }
 
         // Returns a string that gives the value of characteristics

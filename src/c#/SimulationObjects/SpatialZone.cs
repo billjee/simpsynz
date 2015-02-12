@@ -199,29 +199,27 @@ namespace SimulationObjects
         private KeyValPair hhldControlTotal;
         public void SetHhldControlTotal(string key, uint val)
         {
-            hhldControlTotal.category = key;
-            hhldControlTotal.value = val;
+            hhldControlTotal.Category = key;
+            hhldControlTotal.Value = val;
         }
 
-        public ArrayList GetDataHhldCollectionsList()
+        public List<ConditionalDistribution> GetDataHhldCollectionsList()
         {
-            ArrayList currColl = new ArrayList();
-
-            currColl.Add((ConditionalDistribution)modelIncConditionals);
-            currColl.Add((ConditionalDistribution)modelUnivDegConditionals);
-            currColl.Add((ConditionalDistribution)modelDwellConditionals);
-            currColl.Add((ConditionalDistribution)modelCarsConditionals);
-
+            List<ConditionalDistribution> currColl = new List<ConditionalDistribution>();
+            currColl.Add(modelIncConditionals);
+            currColl.Add(modelUnivDegConditionals);
+            currColl.Add(modelDwellConditionals);
+            currColl.Add(modelCarsConditionals);
             return currColl;
         }
 
-        public ArrayList GetPersonDataCollectionsList()
+        public List<ConditionalDistribution> GetPersonDataCollectionsList()
         {
-            ArrayList currColl = new ArrayList();
-            currColl.Add((ConditionalDistribution)myAgeConditional);
-            currColl.Add((ConditionalDistribution)mySexConditional);
-            currColl.Add((ConditionalDistribution)myHhldSizeConditional);
-            currColl.Add((ConditionalDistribution)myEduLevelConditional);
+            List<ConditionalDistribution> currColl = new List<ConditionalDistribution>();
+            currColl.Add(myAgeConditional);
+            currColl.Add(mySexConditional);
+            currColl.Add(myHhldSizeConditional);
+            currColl.Add(myEduLevelConditional);
             return currColl;
         }
 

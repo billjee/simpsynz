@@ -69,9 +69,9 @@ namespace PopulationSynthesis.Utils
                                     (Hashtable)currTable.Value)
                         {
                             writer.WriteToFile(
-                                ((KeyValPair)currPair.Value).category
+                                ((KeyValPair)currPair.Value).Category
                                 + "," + ((KeyValPair)currPair.Value)
-                                            .value.ToString());
+                                            .Value.ToString());
                         }
                     }
                 }
@@ -150,9 +150,9 @@ namespace PopulationSynthesis.Utils
             foreach(string curStr in combStr)
             {
                 KeyValPair currKey = new KeyValPair();
-                currKey.category = curStr.Substring(0, curStr.Length - 1);
-                currKey.value = 0;
-                currDimColl.Add(currKey.category, currKey);
+                currKey.Category = curStr.Substring(0, curStr.Length - 1);
+                currKey.Value = 0;
+                currDimColl.Add(currKey.Category, currKey);
             }
         }
 
@@ -201,14 +201,14 @@ namespace PopulationSynthesis.Utils
                 {
                     KeyValPair mycurVal =
                         (KeyValPair)currDimColl[currCondNm];
-                    mycurVal.value++;
+                    mycurVal.Value++;
                     currDimColl[currCondNm] = mycurVal;
                 }
                 else
                 {
                     KeyValPair curPair = new KeyValPair();
-                    curPair.value = 1;
-                    curPair.category = currCondNm;
+                    curPair.Value = 1;
+                    curPair.Category = currCondNm;
                     //currDimColl.Add(currCondNm, curPair);
                 }
             }

@@ -71,23 +71,21 @@ namespace SimulationObjects
 
         public Person()
         {
-            myID = ++idCounter;
             mySex = Sex.Female;
             myAge = Age.ThirtyFiveToFortyFour;
             myEducLevel = EducationLevel.primary;
             myHhldSize = HouseholdSize2.TwoPersons;
-            myType = AgentType.Person;
+            Type = AgentType.Person;
         }
 
         public Person(string currZone)
         {
             myZoneID = currZone;
-            myID = ++idCounter;
             mySex = Sex.Female;
             myAge = Age.ThirtyFiveToFortyFour;
             myEducLevel = EducationLevel.primary;
             myHhldSize = HouseholdSize2.TwoPersons;
-            myType = AgentType.Person;
+            Type = AgentType.Person;
         }
 
         public override string GetNewJointKey(string baseDim)

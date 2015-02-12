@@ -18,7 +18,7 @@ namespace PopulationSynthesis.Utils
 {
     class ConditionalDistribution
     {
-        protected ArrayList missingDimStatus;
+        protected List<int> MissingDimStatus;
 
         protected string dimensionName;
         public string GetDimensionName()
@@ -52,7 +52,7 @@ namespace PopulationSynthesis.Utils
             return 0;
         }
 
-        public virtual ArrayList GetCommulativeValue(string key,
+        public virtual List<KeyValPair> GetCommulativeValue(string key,
                                             SpatialZone curZ)
         {
             return null;
@@ -64,7 +64,7 @@ namespace PopulationSynthesis.Utils
 
             for (int i = 0; i < procdKeyTok.Length; i++)
             {
-                if ((int)missingDimStatus[i] == 0)
+                if ((int)MissingDimStatus[i] == 0)
                 {
                     procdKeyTok[i] =
                         Utils.Constants.CONDITIONAL_GENERIC;

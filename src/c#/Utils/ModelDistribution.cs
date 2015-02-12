@@ -60,8 +60,8 @@ namespace PopulationSynthesis.Utils
             }
             return 0;
         }
-        
-        private ArrayList GetCommValue(string dimension
+
+        private List<KeyValPair> GetCommValue(string dimension
                                 , string key,
                                 SpatialZone curZ)
         {
@@ -84,7 +84,7 @@ namespace PopulationSynthesis.Utils
             return null;
         }
 
-        public override ArrayList GetCommulativeValue(string key,
+        public override List<KeyValPair> GetCommulativeValue(string key,
                                             SpatialZone curZ)
         {
             return GetCommValue(GetDimensionName(), key, curZ);
@@ -95,7 +95,7 @@ namespace PopulationSynthesis.Utils
                                             string procdKey,
                                             SpatialZone curZ)
         {
-            ArrayList valList = GetUtilityValuesForIncome(procdKey, curZ);
+            var valList = GetUtilityValuesForIncome(procdKey, curZ);
             double logsum = ((double)valList[0]
                                      + (double)valList[1]
                                      + (double)valList[2]
@@ -129,51 +129,51 @@ namespace PopulationSynthesis.Utils
             return 0.00;
         }
 
-        private ArrayList ComputeIncomeCommulative(string procdKey,
+        private List<KeyValPair> ComputeIncomeCommulative(string procdKey,
                                           SpatialZone curZ)
         {
             double comVal = 0.00;
-            ArrayList comList = new ArrayList();
-            ArrayList valList = GetUtilityValuesForIncome(procdKey, curZ);
+            var comList = new List<KeyValPair>();
+            var valList = GetUtilityValuesForIncome(procdKey, curZ);
             KeyValPair currPair = new KeyValPair();
             double utilSum = (double)valList[0] + (double)valList[1]
                                      + (double)valList[2]
                                      + (double)valList[3]
                                      + (double)valList[4];
-            currPair.category = "0";//IncomeLevel.ThirtyOrLess.ToString();
-            currPair.value = (double)valList[0] / utilSum;
-            comVal = currPair.value;
+            currPair.Category = "0";//IncomeLevel.ThirtyOrLess.ToString();
+            currPair.Value = (double)valList[0] / utilSum;
+            comVal = currPair.Value;
             comList.Add(currPair);
 
             currPair = new KeyValPair();
-            currPair.category = "1";//IncomeLevel.ThirtyToSevetyFive.ToString();
-            currPair.value = comVal + (double)valList[1] / utilSum;
-            comVal = currPair.value;
+            currPair.Category = "1";//IncomeLevel.ThirtyToSevetyFive.ToString();
+            currPair.Value = comVal + (double)valList[1] / utilSum;
+            comVal = currPair.Value;
             comList.Add(currPair);
 
             currPair = new KeyValPair();
-            currPair.category = "2";//IncomeLevel.SeventyFiveToOneTwentyFive.ToString();
-            currPair.value = comVal + (double)valList[2] / utilSum;
-            comVal = currPair.value;
+            currPair.Category = "2";//IncomeLevel.SeventyFiveToOneTwentyFive.ToString();
+            currPair.Value = comVal + (double)valList[2] / utilSum;
+            comVal = currPair.Value;
             comList.Add( currPair);
 
             currPair = new KeyValPair();
-            currPair.category = "3";//IncomeLevel.OneTwentyFiveToTwoHundred.ToString();
-            currPair.value = comVal + (double)valList[3] / utilSum;
-            comVal = currPair.value;
+            currPair.Category = "3";//IncomeLevel.OneTwentyFiveToTwoHundred.ToString();
+            currPair.Value = comVal + (double)valList[3] / utilSum;
+            comVal = currPair.Value;
             comList.Add(currPair);
 
             currPair = new KeyValPair();
-            currPair.category = "4";//IncomeLevel.TwohundredOrMore.ToString();
-            currPair.value = comVal + (double)valList[4] / utilSum;
+            currPair.Category = "4";//IncomeLevel.TwohundredOrMore.ToString();
+            currPair.Value = comVal + (double)valList[4] / utilSum;
             comList.Add(currPair);
             return comList;
         }
-        private ArrayList GetUtilityValuesForIncome(string key,
+        private List<double> GetUtilityValuesForIncome(string key,
                                             SpatialZone curZ)
         {
             string[] curKeys = key.Split(Constants.CONDITIONAL_DELIMITER[0]);
-            ArrayList currValues = new ArrayList(5);
+            var currValues = new List<double>(5);
 
             currValues.Add(1.00);
             currValues.Add(Math.Exp(-0.859 + 0.000783 * curZ.GetAverageIncome()
@@ -204,7 +204,7 @@ namespace PopulationSynthesis.Utils
                                             string procdKey,
                                             SpatialZone curZ)
         {
-            ArrayList valList = GetUtilityValuesForEducation(procdKey, curZ);
+            var valList = GetUtilityValuesForEducation(procdKey, curZ);
             double logsum = ((double)valList[0]
                             + (double)valList[1]
                             + (double)valList[2]);
@@ -223,38 +223,38 @@ namespace PopulationSynthesis.Utils
             return 0.00;
         }
 
-        private ArrayList ComputeEducationCommulative(string procdKey,
+        private List<KeyValPair> ComputeEducationCommulative(string procdKey,
                                           SpatialZone curZ)
         {
             double comVal = 0.00;
-            ArrayList comList = new ArrayList();
-            ArrayList valList = GetUtilityValuesForEducation(procdKey, curZ);
+            var comList = new List<KeyValPair>();
+            var valList = GetUtilityValuesForEducation(procdKey, curZ);
             double utilSum = (double)valList[0] + (double)valList[1]
                          + (double)valList[2];
             KeyValPair currPair = new KeyValPair();
-            currPair.category = "0";//NumWithUnivDeg.None.ToString();
-            currPair.value = (double)valList[0] / utilSum;
-            comVal = currPair.value;
+            currPair.Category = "0";//NumWithUnivDeg.None.ToString();
+            currPair.Value = (double)valList[0] / utilSum;
+            comVal = currPair.Value;
             comList.Add(currPair);
 
             currPair = new KeyValPair();
-            currPair.category = "1";//NumWithUnivDeg.One.ToString();
-            currPair.value = comVal + (double)valList[1] / utilSum;
-            comVal = currPair.value;
+            currPair.Category = "1";//NumWithUnivDeg.One.ToString();
+            currPair.Value = comVal + (double)valList[1] / utilSum;
+            comVal = currPair.Value;
             comList.Add(currPair);
 
             currPair = new KeyValPair();
-            currPair.category = "2";//NumWithUnivDeg.TwoOrMore.ToString();
-            currPair.value = comVal + (double)valList[2] / utilSum;
+            currPair.Category = "2";//NumWithUnivDeg.TwoOrMore.ToString();
+            currPair.Value = comVal + (double)valList[2] / utilSum;
             comList.Add(currPair);
             return comList;
         }
 
-        private ArrayList GetUtilityValuesForEducation(string key,
+        private List<double> GetUtilityValuesForEducation(string key,
                                             SpatialZone curZ)
         {
             string[] curKeys = key.Split(Constants.CONDITIONAL_DELIMITER[0]);
-            ArrayList currValues = new ArrayList(3);
+            List<double> currValues = new List<double>(3);
             currValues.Add(1.00);
             currValues.Add(Math.Exp(-2.96 + 0.238 * Int16.Parse(curKeys[4])
                                + 3.34 * curZ.GetPercentHighEducated()
@@ -271,7 +271,7 @@ namespace PopulationSynthesis.Utils
                                             string procdKey,
                                             SpatialZone curZ)
         {
-            ArrayList valList = GetUtilityValuesForCar(procdKey, curZ);
+            var valList = GetUtilityValuesForCar(procdKey, curZ);
             
             double logsum = ((double)valList[0]
                             + (double)valList[1]
@@ -296,45 +296,45 @@ namespace PopulationSynthesis.Utils
             }
             return 0.00;
         }
-        private ArrayList ComputeCarCommulative(string procdKey,
+        private List<KeyValPair> ComputeCarCommulative(string procdKey,
                                           SpatialZone curZ)
         {
             double comVal = 0.00;
-            ArrayList comList = new ArrayList();
-            ArrayList valList = GetUtilityValuesForCar(procdKey, curZ);
+            var comList = new List<KeyValPair>();
+            var valList = GetUtilityValuesForCar(procdKey, curZ);
             double utilSum = (double)valList[0] + (double)valList[1]
                          + (double)valList[2] + (double)valList[3];
             KeyValPair currPair = new KeyValPair();
-            currPair.category = "0";//No Car
-            currPair.value = (double)valList[0] / utilSum;
-            comVal = currPair.value;
+            currPair.Category = "0";//No Car
+            currPair.Value = (double)valList[0] / utilSum;
+            comVal = currPair.Value;
             comList.Add(currPair);
 
             currPair = new KeyValPair();
-            currPair.category = "1";//1 Car
-            currPair.value = comVal + (double)valList[1] / utilSum;
-            comVal = currPair.value;
+            currPair.Category = "1";//1 Car
+            currPair.Value = comVal + (double)valList[1] / utilSum;
+            comVal = currPair.Value;
             comList.Add(currPair);
 
             currPair = new KeyValPair();
-            currPair.category = "2"; //2 Cars
-            currPair.value = comVal + (double)valList[2] / utilSum;
-            comVal = currPair.value;
+            currPair.Category = "2"; //2 Cars
+            currPair.Value = comVal + (double)valList[2] / utilSum;
+            comVal = currPair.Value;
             comList.Add(currPair);
 
             currPair = new KeyValPair();
-            currPair.category = "3"; //3 or more Cars
-            currPair.value = comVal + (double)valList[3] / utilSum;
+            currPair.Category = "3"; //3 or more Cars
+            currPair.Value = comVal + (double)valList[3] / utilSum;
             comList.Add(currPair);
 
             return comList;
         }
 
-        private ArrayList GetUtilityValuesForCar(string key,
+        private List<double> GetUtilityValuesForCar(string key,
                                             SpatialZone curZ)
         {
             string[] curKeys = key.Split(Constants.CONDITIONAL_DELIMITER[0]);
-            ArrayList currValues = new ArrayList(4);
+            var currValues = new List<double>(4);
             currValues.Add(1.00);
             double dwellNotApartment = 0.00;
             if (Int16.Parse(curKeys[5]) != 3)
@@ -507,7 +507,7 @@ namespace PopulationSynthesis.Utils
                                     string procdKey,
                                     SpatialZone curZ)
         {
-            ArrayList valList = GetUtilityValuesForDwelling(procdKey, curZ);
+            var valList = GetUtilityValuesForDwelling(procdKey, curZ);
 
             double logsum = ((double)valList[0]
                             + (double)valList[1]
@@ -533,35 +533,35 @@ namespace PopulationSynthesis.Utils
             return 0.00;
         }
 
-        private ArrayList ComputeDwellingCommulative(string procdKey,
+        private List<KeyValPair> ComputeDwellingCommulative(string procdKey,
                                   SpatialZone curZ)
         {
             double comVal = 0.00;
-            ArrayList comList = new ArrayList();
-            ArrayList valList = GetUtilityValuesForDwelling(procdKey, curZ);
+            var comList = new List<KeyValPair>();
+            var valList = GetUtilityValuesForDwelling(procdKey, curZ);
             double utilSum = (double)valList[0] + (double)valList[1]
                          + (double)valList[2] + (double)valList[3];
             KeyValPair currPair = new KeyValPair();
-            currPair.category = "0";//Seperate
-            currPair.value = (double)valList[0] / utilSum;
-            comVal = currPair.value;
+            currPair.Category = "0";//Seperate
+            currPair.Value = (double)valList[0] / utilSum;
+            comVal = currPair.Value;
             comList.Add(currPair);
 
             currPair = new KeyValPair();
-            currPair.category = "1";//Semi detached
-            currPair.value = comVal + (double)valList[1] / utilSum;
-            comVal = currPair.value;
+            currPair.Category = "1";//Semi detached
+            currPair.Value = comVal + (double)valList[1] / utilSum;
+            comVal = currPair.Value;
             comList.Add(currPair);
 
             currPair = new KeyValPair();
-            currPair.category = "2"; //Attached
-            currPair.value = comVal + (double)valList[2] / utilSum;
-            comVal = currPair.value;
+            currPair.Category = "2"; //Attached
+            currPair.Value = comVal + (double)valList[2] / utilSum;
+            comVal = currPair.Value;
             comList.Add(currPair);
 
             currPair = new KeyValPair();
-            currPair.category = "3"; //Apartment
-            currPair.value = comVal + (double)valList[3] / utilSum;
+            currPair.Category = "3"; //Apartment
+            currPair.Value = comVal + (double)valList[3] / utilSum;
 
             comList.Add(currPair);
 
@@ -617,11 +617,11 @@ namespace PopulationSynthesis.Utils
         //    return currValues;
         //}
 
-        private ArrayList GetUtilityValuesForDwelling(string key,
+        private List<double> GetUtilityValuesForDwelling(string key,
                             SpatialZone curZ)
         {
             string[] curKeys = key.Split(Constants.CONDITIONAL_DELIMITER[0]);
-            ArrayList currValues = new ArrayList(4);
+            var currValues = new List<double>(4);
             int hhldSz = int.Parse(curKeys[0]);
             double b_surf = 0.00;
             if (hhldSz == 2)

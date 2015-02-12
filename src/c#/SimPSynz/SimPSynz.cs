@@ -14,6 +14,7 @@ using System.Linq;
 using System.Text;
 using SimulationObjects;
 using PopulationSynthesis.Utils;
+using System.Diagnostics;
 //using IPF;
 
 namespace Program
@@ -75,11 +76,17 @@ namespace Program
         private static void CreatePersonViaSimulation()
         {
             World currWorld = new World();
+            Stopwatch watch = Stopwatch.StartNew();
             currWorld.Initialize(true,AgentType.Person);
+            watch.Stop();
+            Console.WriteLine("Initialization: " + watch.ElapsedMilliseconds + "ms");
+            watch.Restart();
             currWorld.CreatePersonPopulationPool(
                 Constants.DATA_DIR + "\\Person\\ConditionalExperiments"
                 + "\\NoSexConditional\\AgeHhldSizeEdu"
                 + "\\SyntheticPerson_AgeHhldSizeEdu.csv");
+            watch.Stop();
+            Console.WriteLine("Create Person Population Pool: " + watch.ElapsedMilliseconds + "ms");
         }
 
         private static void CreateHhldViaSimulation()

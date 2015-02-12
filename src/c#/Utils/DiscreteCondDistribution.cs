@@ -34,30 +34,30 @@ namespace PopulationSynthesis.Utils
     // F | A, B, C, D, E
     // Each DatasetCollection will have dataset for A |... , B|..., and so on
     // Each category witin DatasetCollection will have a seperate hashtable
-    class DiscreteCondDistribution : ConditionalDistribution
+    sealed class DiscreteCondDistribution : ConditionalDistribution
     {
         // Hashtable represents each category of the dimension
         // Each dimension will have hashtable for values from other dimension
-        private Hashtable myCollection;
+        private Dictionary<string,Dictionary<string,double>> Data;
         public DiscreteCondDistribution()
         {
-            myCollection = new Hashtable();
-            missingDimStatus = new ArrayList();
+            Data = new Dictionary<string, Dictionary<string, double>>();
+            MissingDimStatus = new List<int>();
             SetDistributionType(true);
         }
 
         public int GetCategoryCount()
         {
-            return myCollection.Count;
+            return Data.Count;
         }
 
         public void FlushOutData()
         {
-            foreach (DictionaryEntry currEnt in myCollection)
+            foreach (var currEnt in Data)
             {
-                ((Hashtable)currEnt.Value).Clear();
+                currEnt.Value.Clear();
             }
-            myCollection.Clear();
+            Data.Clear();
         }
 
         // For A=a|B=b,C=c,D=d
@@ -68,7 +68,7 @@ namespace PopulationSynthesis.Utils
         {
             if (category != null)
             {
-                if ( myCollection.Count == 0)
+                if ( Data.Count == 0)
                 {
                     string[] currKeyToken = key.Split(Utils.Constants.CONDITIONAL_DELIMITER[0]);
 
@@ -76,22 +76,21 @@ namespace PopulationSynthesis.Utils
                     {
                         if( currStr.Equals(Utils.Constants.CONDITIONAL_GENERIC))
                         {
-                            missingDimStatus.Add(0);
+                            MissingDimStatus.Add(0);
                         }
                         else
                         {
-                            missingDimStatus.Add(1);
+                            MissingDimStatus.Add(1);
                         }
                     }
                 }
-                if (!myCollection.Contains(category))
+                if((key != null) && (val >= 0.00))
                 {
-                    myCollection.Add(category, new Hashtable());
-                }
-                if ((key != null) && (val >= 0.00))
-                {
-                    Hashtable currCatData = (Hashtable) 
-                                    myCollection[category];
+                    Dictionary<string, double> currCatData;
+                    if(!Data.TryGetValue(category, out currCatData))
+                    {
+                        Data.Add(category, (currCatData = new Dictionary<string, double>()));
+                    }
                     currCatData.Add(key, val);
                     return true;
                 }
@@ -116,12 +115,13 @@ namespace PopulationSynthesis.Utils
                         string category, string key,
                                 SpatialZone curZ)
         {
-            if (myCollection.Contains(category))
+            Dictionary<string, double> currCat;
+            if (Data.TryGetValue(category, out currCat))
             {
-                Hashtable currCat = (Hashtable)myCollection[category];
-                if (currCat.Contains(key))
+                double ret;
+                if (currCat.TryGetValue(key, out ret))
                 {
-                    return (double)currCat[key];
+                    return ret;
                 }
                 return Constants.INVALID_UINT_VAL;
             }
@@ -129,30 +129,26 @@ namespace PopulationSynthesis.Utils
         }
 
         // commulative probability or count for the key
-        public override ArrayList GetCommulativeValue(string key,
+        public override List<KeyValPair> GetCommulativeValue(string key,
                                             SpatialZone curZ)
         {
-            ArrayList currComm = new ArrayList();
+            var currComm = new List<KeyValPair>();
             double commCnt = 0;
-
             key = ProcessKey(key);
-
-            foreach (DictionaryEntry currEnt in myCollection)
+            foreach (var currEnt in Data)
             {
-                KeyValPair currPair = new KeyValPair();
-                currPair.category = (string) currEnt.Key;
-                if (((Hashtable)currEnt.Value).Contains(key))
+                KeyValPair currPair;
+                double value;
+                currPair.Category = currEnt.Key;
+                if (currEnt.Value.TryGetValue(key, out value))
                 {
-                    currPair.value =
-                    ((double)((Hashtable)currEnt.Value)[key])
-                    + commCnt;
-
+                    currPair.Value = value + commCnt;
                 }
                 else
                 {
-                    currPair.value = commCnt;
+                    currPair.Value = commCnt;
                 }
-                commCnt = currPair.value;
+                commCnt = currPair.Value;
                 currComm.Add(currPair);
             }
             return currComm;

@@ -63,44 +63,44 @@ namespace Samplers
         // The data processing has already been done
         // [BF] The method should be changed so that it can generate any
         //      kind of agents
-        public ArrayList GenerateAgents(SpatialZone currZone, int numAgents, 
-                        SimulationObject initAgent, bool warmUpStatus, 
-                        ArrayList mobelCond,
+        public List<SimulationObject> GenerateAgents(SpatialZone currZone, int numAgents,
+                        SimulationObject initAgent, bool warmUpStatus,
+                        List<ConditionalDistribution> mobelCond,
                         OutputFileWritter currWriter)
         {
-            if (initAgent.GetAgentType() == AgentType.Household)
+            switch(initAgent.GetAgentType())
             {
-                return GenerateHousholds(currZone, numAgents, 
-                                    (Household) initAgent, warmUpStatus, 
+                case AgentType.Household:
+                return GenerateHousholds(currZone, numAgents,
+                                    (Household)initAgent, warmUpStatus,
                                         mobelCond, currWriter);
-            }
-            if (initAgent.GetAgentType() == AgentType.Person)
-            {
-                return GeneratePersons(currZone, numAgents,
-                                    (Person) initAgent, warmUpStatus,
+                case AgentType.Person:
+                    return GeneratePersons(currZone, numAgents,
+                                    (Person)initAgent, warmUpStatus,
                                         currWriter);
             }
             return null;
         }
 
 
-        private ArrayList GenerateHousholds(SpatialZone currZone, int numHousehold,
+        private List<SimulationObject> GenerateHousholds(SpatialZone currZone, int numHousehold,
                         Household initAgent, bool warmUpStatus,
-                        ArrayList mobelCond,
+                        List<ConditionalDistribution> mobelCond,
                         OutputFileWritter currWriter)
         {
             int seltdDim = 0;
-            ArrayList condList = currZone.GetDataHhldCollectionsList();
-            condList.Add(mobelCond[0]);
-            condList.Add(mobelCond[1]);
-            condList.Add(mobelCond[2]);
-            ArrayList generatedAgents = new ArrayList();
+            List<ConditionalDistribution> condList = currZone.GetDataHhldCollectionsList();
+            for(int i = 0; i < mobelCond.Count; i++)
+            {
+                condList.Add(mobelCond[i]);
+            }
+            var generatedAgents = new List<SimulationObject>();
             Household prevAgent = initAgent;
 
             ImportanceSampler currImpSampler = new ImportanceSampler();
             MetropolisHasting currMHSampler = new MetropolisHasting();
             int iter = 0;
-            if (warmUpStatus == true)
+            if(warmUpStatus == true)
             {
                 iter = Constants.WARMUP_ITERATIONS;
             }
@@ -109,12 +109,12 @@ namespace Samplers
                 iter = Constants.SKIP_ITERATIONS * numHousehold;
             }
             Household newAgent = new Household();
-            for (int i = 0; i < iter; i++)
+            StringBuilder builder = new StringBuilder();
+            for(int i = 0; i < iter; i++)
             {
                 seltdDim = randGen.NextInRange(0, condList.Count - 1);
 
-                ConditionalDistribution currDist =
-                    (ConditionalDistribution)condList[seltdDim];
+                ConditionalDistribution currDist = condList[seltdDim];
 
                 // If the selected distribution is dwelling/cars
                 // call important sampling
@@ -140,7 +140,7 @@ namespace Samplers
                 //                    newAgent = myMHSampler.GetNextAgent((ModelDistribution)currDist,
                 //                            currDist.GetDimensionName(), prevAgent, currZone);
                 //                }
-                if (currDist.GetDimensionName() == "HouseholdSize")
+                if(currDist.GetDimensionName() == "HouseholdSize")
                 {
                     newAgent = (Household)currImpSampler.GetNextAgent(
                         currZone.GetHousholdSizeDist(),
@@ -149,7 +149,7 @@ namespace Samplers
                 }
                 else
                 {
-                    ArrayList currComm = currDist.GetCommulativeValue(
+                    var currComm = currDist.GetCommulativeValue(
                         prevAgent.GetNewJointKey(currDist.GetDimensionName())
                         , currZone);
                     newAgent = (Household)GenerateNextAgent(currComm, prevAgent,
@@ -157,43 +157,39 @@ namespace Samplers
                 }
 
                 prevAgent = newAgent;
-                if (warmUpStatus == false && (i % Constants.SKIP_ITERATIONS == 0))
+                if(warmUpStatus == false && (i % Constants.SKIP_ITERATIONS == 0))
                 {
-                    newAgent.SetID(agentIDCounter);
-                    agentIDCounter++;
                     generatedAgents.Add(newAgent);
                     uint currIncome = IncomeConvertor.GetEuroIncome((uint)
                                         newAgent.GetIncome());
-
-                    string currStrAgent = newAgent.GetID()
-                        + "," + newAgent.GetZoneID()
-                        + "," + currZone.GetEPFLName()
-                        + "," + ((int)newAgent.GetHhldSize()).ToString()
-                        + "," + ((int)newAgent.GetNumOfWorkers()).ToString()
-                        + "," + ((int)newAgent.GetNumOfKids()).ToString()
-                        + "," + ((int)newAgent.GetNumOfUnivDegree()).ToString()
-                        + "," + ((int)newAgent.GetIncomeLevel()).ToString()
-                        + "," + ((int)newAgent.GetNumOfCars()).ToString()
-                        + "," + ((int)newAgent.GetDwellingType()).ToString();
-                    currWriter.WriteToFile(currStrAgent);
-                    //Console.WriteLine(currStrAgent);
+                    builder.Append(newAgent.GetZoneID()); builder.Append(',');
+                    builder.Append(currZone.GetEPFLName()); builder.Append(',');
+                    builder.Append((int)newAgent.GetHhldSize()); builder.Append(',');
+                    builder.Append((int)newAgent.GetNumOfWorkers()); builder.Append(',');
+                    builder.Append((int)newAgent.GetNumOfKids()); builder.Append(',');
+                    builder.Append((int)newAgent.GetNumOfUnivDegree()); builder.Append(',');
+                    builder.Append((int)newAgent.GetIncomeLevel()); builder.Append(',');
+                    builder.Append((int)newAgent.GetNumOfCars()); builder.Append(',');
+                    builder.Append((int)newAgent.GetDwellingType());
+                    currWriter.WriteToFile(builder.ToString());
+                    builder.Clear();
                 }
             }
             return generatedAgents;
         }
 
-        private ArrayList GeneratePersons(SpatialZone currZone, int numPerson,
-                            Person initAgent, bool warmUpStatus, 
+        private List<SimulationObject> GeneratePersons(SpatialZone currZone, int numPerson,
+                            Person initAgent, bool warmUpStatus,
                             OutputFileWritter currWriter)
         {
             int seltdDim = 0;
-            ArrayList condList = currZone.GetPersonDataCollectionsList();
-            ArrayList generatedAgents = new ArrayList();
+            List<ConditionalDistribution> condList = currZone.GetPersonDataCollectionsList();
+            var generatedAgents = new List<SimulationObject>();
             Person prevAgent = initAgent;
             ImportanceSampler currImpSampler = new ImportanceSampler();
 
             int iter = 0;
-            if (warmUpStatus == true)
+            if(warmUpStatus == true)
             {
                 iter = Constants.WARMUP_ITERATIONS;
             }
@@ -202,7 +198,8 @@ namespace Samplers
                 iter = Constants.SKIP_ITERATIONS * numPerson;
             }
             Person newAgent = new Person();
-            for (int i = 0; i < iter; i++)
+            StringBuilder builder = new StringBuilder();
+            for(int i = 0; i < iter; i++)
             {
                 seltdDim = randGen.NextInRange(0, condList.Count - 1);
 
@@ -223,7 +220,8 @@ namespace Samplers
                                 currDist, currDist.GetDimensionName(),
                                 (SimulationObject)prevAgent, currZone);
                 }
-                else*/ if (currDist.GetDimensionName() == "Sex")
+                else*/
+                if(currDist.GetDimensionName() == "Sex")
                 {
                     newAgent = (Person)currImpSampler.GetNextAgent(
                                 currZone.mySexMarginal,
@@ -239,7 +237,7 @@ namespace Samplers
                 }*/
                 else
                 {
-                    ArrayList currComm = currDist.GetCommulativeValue(
+                    List<KeyValPair> currComm = currDist.GetCommulativeValue(
                          prevAgent.GetNewJointKey(currDist.GetDimensionName())
                             , currZone);
                     newAgent = (Person)GenerateNextAgent(currComm,
@@ -248,38 +246,33 @@ namespace Samplers
                 }
 
                 prevAgent = newAgent;
-                if (warmUpStatus == false && (i % Constants.SKIP_ITERATIONS == 0))
+                if(warmUpStatus == false && (i % Constants.SKIP_ITERATIONS == 0))
                 {
-                    newAgent.SetID(agentIDCounter);
-                    agentIDCounter++;
                     generatedAgents.Add(newAgent);
-
-                    string currStrAgent = newAgent.GetID()
-                        + "," + newAgent.GetZoneID()
-                        + "," + ((int)newAgent.GetAge()).ToString()
-                        + "," + ((int)newAgent.GetSex()).ToString()
-                        + "," + ((int)newAgent.GetHhldSize()).ToString()
-                        + "," + ((int)newAgent.GetEducationLevel()).ToString();
-
-                    currWriter.WriteToFile(currStrAgent);
-                    //Console.WriteLine(currStrAgent);
+                    builder.Append((int)newAgent.GetAge()); builder.Append(',');
+                    builder.Append(newAgent.GetZoneID()); builder.Append(',');
+                    builder.Append((int)newAgent.GetSex()); builder.Append(',');
+                    builder.Append((int)newAgent.GetHhldSize()); builder.Append(',');
+                    builder.Append((int)newAgent.GetEducationLevel());
+                    currWriter.WriteToFile(builder.ToString());
+                    builder.Clear();
                 }
             }
             return generatedAgents;
         }
 
         // Should generate a deep copy of self
-        private SimulationObject GenerateNextAgent(ArrayList curCom, 
+        private SimulationObject GenerateNextAgent(List<KeyValPair> curCom,
             SimulationObject prvAgnt, string genDim)
         {
             double currMax = (double)
-                ((KeyValPair)curCom[curCom.Count - 1]).value;
-            if (currMax != 0.00)
+                ((KeyValPair)curCom[curCom.Count - 1]).Value;
+            if(currMax != 0.00)
             {
                 double randVal = randGen.NextDoubleInRange(0, currMax);
-                for (int i = 0; i < curCom.Count; i++)
+                for(int i = 0; i < curCom.Count; i++)
                 {
-                    if (randVal <= ((KeyValPair)curCom[i]).value)
+                    if(randVal <= ((KeyValPair)curCom[i]).Value)
                     {
                         return prvAgnt.CreateNewCopy(genDim, i);
                     }

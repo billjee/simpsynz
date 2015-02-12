@@ -17,25 +17,15 @@ namespace SimulationObjects
     [Serializable]
     class SimulationObject
     {
-        protected uint myID;
-        public uint GetID()
-        {
-            return myID;
-        }
+        protected AgentType Type;
 
-        public void SetID(uint id)
-        {
-            myID = id;
-        }
-
-        protected AgentType myType;
         public AgentType GetAgentType()
         {
-            return myType;
+            return Type;
         }
         public void SetAgentType(AgentType curTyp)
         {
-            myType = curTyp;
+            Type = curTyp;
         }
         public virtual string GetNewJointKey(string baseDim)
         {

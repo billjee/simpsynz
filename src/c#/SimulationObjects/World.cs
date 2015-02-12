@@ -16,6 +16,8 @@ using System.IO;
 using PopulationSynthesis.Utils;
 using Samplers;
 using System.Threading;
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
 
 namespace SimulationObjects
 {
@@ -259,24 +261,33 @@ namespace SimulationObjects
                 foreach(var entry in ZonalCollection)
                 {
                     SpatialZone currZone = (SpatialZone)entry.Value;
-                    GibbsSampler sampler = new GibbsSampler();
                     if(currZone.GetName() != "1004")
                     {
                         continue;
                     }
-                    // warmup time
-                    sampler.GenerateAgents(currZone,
-                                    Constants.WARMUP_ITERATIONS,
-                                    new Person(currZone.GetName()), true,
-                                    mobelCond,
-                                    agentsOutputFile);
-                    PersonPool.Clear();
-                    // actual generation
-                    PersonPool = sampler.GenerateAgents(currZone,
-                                    Constants.POOL_COUNT,
-                                    new Person(currZone.GetName()), false,
-                                    mobelCond,
-                                    agentsOutputFile);
+                    var rangePartitioner = Partitioner.Create(0, Constants.POOL_COUNT);
+                    Parallel.ForEach(rangePartitioner, (range, loopState) =>
+                    {
+                        using (var localWriter = new OutputFileWriter())
+                        {
+                            GibbsSampler sampler = new GibbsSampler();
+                            var amountToSample = range.Item2 - range.Item1;
+                            // warmup time
+                            sampler.GenerateAgents(currZone,
+                                            Constants.WARMUP_ITERATIONS,
+                                            new Person(currZone.GetName()), true,
+                                            mobelCond,
+                                            localWriter);
+                            PersonPool.Clear();
+                            // actual generation
+                            PersonPool = sampler.GenerateAgents(currZone,
+                                            amountToSample,
+                                            new Person(currZone.GetName()), false,
+                                            mobelCond,
+                                            localWriter);
+                            localWriter.CopyTo(agentsOutputFile);
+                        }
+                    });
                 }
             }
         }

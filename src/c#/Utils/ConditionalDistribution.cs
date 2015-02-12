@@ -68,9 +68,9 @@ namespace PopulationSynthesis.Utils
             {
                 KeyBuilder = builder = new StringBuilder();
             }
+            builder.Clear();
             string[] procdKeyTok =
                 key.Split(Utils.Constants.CONDITIONAL_DELIMITER[0]);
-
             for (int i = 0; i < procdKeyTok.Length; i++)
             {
                 if ((int)MissingDimStatus[i] == 0)
@@ -78,15 +78,12 @@ namespace PopulationSynthesis.Utils
                     procdKeyTok[i] =
                         Utils.Constants.CONDITIONAL_GENERIC;
                 }
+                if(i > 0)
+                {
+                    builder.Append(Utils.Constants.CONDITIONAL_DELIMITER);
+                }
+                builder.Append(procdKeyTok[0]);
             }
-            builder.Clear();
-            builder.Append(procdKeyTok[0]);
-            for (int i = 1; i < procdKeyTok.Length; i++)
-            {
-                builder.Append(Utils.Constants.CONDITIONAL_DELIMITER);
-                builder.Append(procdKeyTok[i]);
-            }
-
             return builder.ToString();
         }
 

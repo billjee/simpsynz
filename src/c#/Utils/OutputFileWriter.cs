@@ -17,16 +17,23 @@ namespace PopulationSynthesis.Utils
 {
     sealed class OutputFileWriter : IDisposable
     {
-        TextWriter FileWriter;
+        private StreamWriter Writer;
+        private MemoryStream MemoryBackend;
 
         public OutputFileWriter(string fileName)
         {
-            FileWriter = new StreamWriter(fileName);
+            Writer = new StreamWriter(fileName);
+        }
+
+        public OutputFileWriter()
+        {
+            MemoryBackend = new MemoryStream();
+            Writer = new StreamWriter(MemoryBackend);
         }
 
         public void WriteToFile(string currOutput)
         {
-            FileWriter.WriteLine(currOutput);
+            Writer.WriteLine(currOutput);
         }
 
         ~OutputFileWriter()
@@ -36,10 +43,15 @@ namespace PopulationSynthesis.Utils
 
         private void Dispose(bool managed)
         {
-            if(FileWriter != null)
+            if(MemoryBackend != null)
             {
-                FileWriter.Dispose();
-                FileWriter = null;
+                MemoryBackend.Dispose();
+                MemoryBackend = null;
+            }
+            if(Writer != null)
+            {
+                Writer.Dispose();
+                Writer = null;
             }
         }
 
@@ -47,6 +59,19 @@ namespace PopulationSynthesis.Utils
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        public void CopyTo(OutputFileWriter destinationWriter)
+        {
+            lock (destinationWriter)
+            {
+                if(MemoryBackend != null)
+                {
+                    Writer.Flush();
+                    destinationWriter.Writer.Flush();
+                    MemoryBackend.WriteTo(destinationWriter.Writer.BaseStream);
+                }
+            }
         }
     }
 }

@@ -24,13 +24,13 @@ namespace PopulationSynthesis.Utils
     //    }
     class ConditionalGenerator
     {
-        ArrayList myDimenionNames;
-        Hashtable myCondCollection;
+        List<List<string>> DimenionNames;
+        Dictionary<string, Dictionary<string, KeyValPair>> CondCollection;
 
         public ConditionalGenerator()
         {
-            myCondCollection = new Hashtable();
-            myDimenionNames = new ArrayList();
+            CondCollection = new Dictionary<string, Dictionary<string, KeyValPair>>();
+            DimenionNames = new List<List<string>>();
         }
 
         public bool GenerateConditionals(string inputDataFile, string inputDescFile)
@@ -49,7 +49,7 @@ namespace PopulationSynthesis.Utils
                 }
                 currRow = reader.GetNextRow();
 
-                for(int i = 0; i < myDimenionNames.Count; i++)
+                for(int i = 0; i < DimenionNames.Count; i++)
                 {
                     CreateCategoryCombinations(i);
                 }
@@ -59,14 +59,13 @@ namespace PopulationSynthesis.Utils
                     currRow = reader.GetNextRow();
                 }
 
-                foreach(DictionaryEntry currTable in myCondCollection)
+                foreach(var currTable in CondCollection)
                 {
-                    using (var writer = new OutputFileWritter(
+                    using (var writer = new OutputFileWriter(
                         Constants.DATA_DIR + "Census" + currTable.Key + ".csv"))
                     {
                         writer.WriteToFile("Conditional,Count");
-                        foreach(DictionaryEntry currPair in
-                                    (Hashtable)currTable.Value)
+                        foreach(var currPair in currTable.Value)
                         {
                             writer.WriteToFile(
                                 ((KeyValPair)currPair.Value).Category
@@ -89,8 +88,8 @@ namespace PopulationSynthesis.Utils
                 {
                     string[] currTok = dimStr.Split(
                         Constants.COLUMN_DELIMETER[0]);
-                    myCondCollection.Add(currTok[0], new Hashtable());
-                    ArrayList curCats = new ArrayList();
+                    CondCollection.Add(currTok[0], new Dictionary<string, KeyValPair>());
+                    var curCats = new List<string>();
                     foreach(string curCat in currTok)
                     {
                         if(curCat != null && curCat != "")
@@ -98,7 +97,7 @@ namespace PopulationSynthesis.Utils
                             curCats.Add(curCat);
                         }
                     }
-                    myDimenionNames.Add(curCats);
+                    DimenionNames.Add(curCats);
                     dimStr = descReader.GetNextRow();
                 }
             }
@@ -107,45 +106,42 @@ namespace PopulationSynthesis.Utils
         private void CreateCategoryCombinations(int idx)
         {
             int dimCnt = 1;
-            string curDimNm = (string)((ArrayList)myDimenionNames[idx])[0];
-            foreach(ArrayList curDim in myDimenionNames)
+            string curDimNm = DimenionNames[idx][0];
+            foreach(var curDim in DimenionNames)
             {
                 dimCnt *= ((curDim).Count - 1);
             }
 
             string[] combStr = new string[dimCnt];
             int offset = 0;
-            for(int i = 1; i < ((ArrayList)myDimenionNames[idx]).Count;
+            for(int i = 1; i < DimenionNames[idx].Count;
                 i++)
             {
                 for(int j = 0; j <
-                    dimCnt / (((ArrayList)myDimenionNames[idx]).Count - 1)
+                    dimCnt / (DimenionNames[idx].Count - 1)
                     ; j++)
                 {
                     combStr[j + offset] =
-                        (string)((ArrayList)myDimenionNames[idx])[i]
+                        DimenionNames[idx][i]
                         + Constants.CATEGORY_DELIMITER;
                 }
                 offset += dimCnt /
-                    (((ArrayList)myDimenionNames[idx]).Count - 1);
+                    (DimenionNames[idx].Count - 1);
             }
 
             offset = dimCnt /
-                    (((ArrayList)myDimenionNames[idx]).Count - 1);
+                    (DimenionNames[idx].Count - 1);
 
-            for(int i = 0; i < myDimenionNames.Count; i++)
+            for(int i = 0; i < DimenionNames.Count; i++)
             {
                 if(i != idx)
                 {
-
                     AppendDimensions(combStr, i, offset);
-                    offset /= (((ArrayList)myDimenionNames[i]).Count - 1);
+                    offset /= (DimenionNames[i].Count - 1);
                 }
             }
 
-            Hashtable currDimColl = (Hashtable)
-                    myCondCollection[(string)
-                    ((ArrayList)myDimenionNames[idx])[0]];
+            var currDimColl = CondCollection[DimenionNames[idx][0]];
 
             foreach(string curStr in combStr)
             {
@@ -159,7 +155,7 @@ namespace PopulationSynthesis.Utils
         private void AppendDimensions(string[] stringCol,
             int currDim, int offset)
         {
-            ArrayList currDimL = (ArrayList)myDimenionNames[currDim];
+            var currDimL = DimenionNames[currDim];
             int DimOff = offset / (currDimL.Count - 1);
             int repeat = stringCol.Length / offset;
             int cursor = 0;
@@ -183,8 +179,7 @@ namespace PopulationSynthesis.Utils
 
             for(int i = 0; i < currVal.Length; i++)
             {
-                Hashtable currDimColl = (Hashtable)
-                    myCondCollection[(string)((ArrayList)myDimenionNames[i])[0]];
+                var currDimColl = CondCollection[DimenionNames[i][0]];
                 string currCondNm = currVal[i] +
                     Constants.CATEGORY_DELIMITER;
                 for(int j = 0; j < currVal.Length; j++)
@@ -195,21 +190,19 @@ namespace PopulationSynthesis.Utils
                             + Constants.CONDITIONAL_DELIMITER;
                     }
                 }
-                currCondNm =
-                    currCondNm.Substring(0, currCondNm.Length - 1);
-                if(currDimColl.Contains(currCondNm))
+                currCondNm = currCondNm.Substring(0, currCondNm.Length - 1);
+                KeyValPair currentValue;
+                if(currDimColl.TryGetValue(currCondNm, out currentValue))
                 {
-                    KeyValPair mycurVal =
-                        (KeyValPair)currDimColl[currCondNm];
-                    mycurVal.Value++;
-                    currDimColl[currCondNm] = mycurVal;
+                    currentValue.Value++;
+                    currDimColl[currCondNm] = currentValue;
                 }
                 else
                 {
                     KeyValPair curPair = new KeyValPair();
                     curPair.Value = 1;
                     curPair.Category = currCondNm;
-                    //currDimColl.Add(currCondNm, curPair);
+                    currDimColl.Add(currCondNm, curPair);
                 }
             }
 

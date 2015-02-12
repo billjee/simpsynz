@@ -15,11 +15,11 @@ using System.IO;
 
 namespace PopulationSynthesis.Utils
 {
-    sealed class OutputFileWritter : IDisposable
+    sealed class OutputFileWriter : IDisposable
     {
         TextWriter FileWriter;
 
-        public OutputFileWritter(string fileName)
+        public OutputFileWriter(string fileName)
         {
             FileWriter = new StreamWriter(fileName);
         }
@@ -29,7 +29,7 @@ namespace PopulationSynthesis.Utils
             FileWriter.WriteLine(currOutput);
         }
 
-        ~OutputFileWritter()
+        ~OutputFileWriter()
         {
             Dispose(false);
         }

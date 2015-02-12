@@ -66,7 +66,7 @@ namespace Samplers
         public List<SimulationObject> GenerateAgents(SpatialZone currZone, int numAgents,
                         SimulationObject initAgent, bool warmUpStatus,
                         List<ConditionalDistribution> mobelCond,
-                        OutputFileWritter currWriter)
+                        OutputFileWriter currWriter)
         {
             switch(initAgent.GetAgentType())
             {
@@ -86,7 +86,7 @@ namespace Samplers
         private List<SimulationObject> GenerateHousholds(SpatialZone currZone, int numHousehold,
                         Household initAgent, bool warmUpStatus,
                         List<ConditionalDistribution> mobelCond,
-                        OutputFileWritter currWriter)
+                        OutputFileWriter currWriter)
         {
             int seltdDim = 0;
             List<ConditionalDistribution> condList = currZone.GetDataHhldCollectionsList();
@@ -180,7 +180,7 @@ namespace Samplers
 
         private List<SimulationObject> GeneratePersons(SpatialZone currZone, int numPerson,
                             Person initAgent, bool warmUpStatus,
-                            OutputFileWritter currWriter)
+                            OutputFileWriter currWriter)
         {
             int seltdDim = 0;
             List<ConditionalDistribution> condList = currZone.GetPersonDataCollectionsList();
@@ -248,7 +248,7 @@ namespace Samplers
                 prevAgent = newAgent;
                 if(warmUpStatus == false && (i % Constants.SKIP_ITERATIONS == 0))
                 {
-                    generatedAgents.Add(newAgent);
+                    //generatedAgents.Add(newAgent);
                     builder.Append((int)newAgent.GetAge()); builder.Append(',');
                     builder.Append(newAgent.GetZoneID()); builder.Append(',');
                     builder.Append((int)newAgent.GetSex()); builder.Append(',');

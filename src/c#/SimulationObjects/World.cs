@@ -36,7 +36,7 @@ namespace SimulationObjects
         private InputDataReader CensusEduLevelFileReader;
 
 
-        private OutputFileWritter agentsOutputFile;
+        private OutputFileWriter agentsOutputFile;
 
         private Dictionary<string, SpatialZone> ZonalCollection;
         private List<SimulationObject> HhldsPool;
@@ -217,7 +217,7 @@ namespace SimulationObjects
 
         public void CreateHoseholdPopulationPool(string fileName)
         {
-            using (var agentsOutputFile = new OutputFileWritter(fileName))
+            using (var agentsOutputFile = new OutputFileWriter(fileName))
             {
                 uint agentsCreated = 1;
                 uint counter = 0;
@@ -253,7 +253,7 @@ namespace SimulationObjects
 
         public void CreatePersonPopulationPool(string fileName)
         {
-            using (var agentsOutputFile = new OutputFileWritter(fileName))
+            using (var agentsOutputFile = new OutputFileWriter(fileName))
             {
                 var mobelCond = new List<ConditionalDistribution>();
                 foreach(var entry in ZonalCollection)
@@ -322,7 +322,7 @@ namespace SimulationObjects
             ArrayList hhldPool = GetHouseholdPoolForClonning(poolfileName);
 
             using (InputDataReader currReader = new InputDataReader(poolfileName))
-            using (OutputFileWritter currOutputFile = new OutputFileWritter(fileName))
+            using (OutputFileWriter currOutputFile = new OutputFileWriter(fileName))
             {
                 ArrayList currPool = new ArrayList();
                 RandomNumberGen currRandGen = new RandomNumberGen(seed);
@@ -478,7 +478,7 @@ namespace SimulationObjects
             {
                 ArrayList currPool = new ArrayList();
                 RandomNumberGen currRandGen = new RandomNumberGen();
-                using (var currOutputFile = new OutputFileWritter(Constants.DATA_DIR + "PopulationRealization20k.csv"))
+                using (var currOutputFile = new OutputFileWriter(Constants.DATA_DIR + "PopulationRealization20k.csv"))
                 {
                     currOutputFile.WriteToFile("HhldID,SectorID,HhldSize,NbOfWorkers,"
                                 + "NbofKids,NbofUnivDegree,IncLvl,NumbCars,"

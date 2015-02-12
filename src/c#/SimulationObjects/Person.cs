@@ -17,111 +17,121 @@ using PopulationSynthesis.Utils;
 
 namespace SimulationObjects
 {
-    [Serializable]
-    class Person : SimulationObject
+    sealed class Person : SimulationObject
     {
         private static uint idCounter = 0;
 
-        private HouseholdSize2 myHhldSize;
+        private HouseholdSize2 HouseholdSize;
         public HouseholdSize2 GetHhldSize()
         {
-            return myHhldSize;
+            return HouseholdSize;
         }
         public void SetHhldSize(HouseholdSize2 size)
         {
-            myHhldSize = size;
+            HouseholdSize = size;
         }
-        private Age myAge;
+        private Age Age;
         public Age GetAge()
         {
-            return myAge;
+            return Age;
         }
         public void SetAge(Age curAge)
         {
-            myAge = curAge;
+            Age = curAge;
         }
-        private Sex mySex;
+        private Sex Sex;
         public Sex GetSex()
         {
-            return mySex;
+            return Sex;
         }
         public void SetSex(Sex curSex)
         {
-            mySex = curSex;
+            Sex = curSex;
         }
-        private EducationLevel myEducLevel;
+        private EducationLevel EducationLevel;
         public EducationLevel GetEducationLevel()
         {
-            return myEducLevel;
+            return EducationLevel;
         }
         public void SetEducationLevel(EducationLevel eduLvl)
         {
-            myEducLevel = eduLvl;
+            EducationLevel = eduLvl;
         }
 
-        private string myZoneID;
+        private string ZoneID;
         public string GetZoneID()
         {
-            return myZoneID;
+            return ZoneID;
         }
         public void SetZoneID(string id)
         {
-            myZoneID = id;
+            ZoneID = id;
         }
 
         public Person()
         {
-            mySex = Sex.Female;
-            myAge = Age.ThirtyFiveToFortyFour;
-            myEducLevel = EducationLevel.primary;
-            myHhldSize = HouseholdSize2.TwoPersons;
+            Sex = Sex.Female;
+            Age = Age.ThirtyFiveToFortyFour;
+            EducationLevel = EducationLevel.primary;
+            HouseholdSize = HouseholdSize2.TwoPersons;
             Type = AgentType.Person;
         }
 
         public Person(string currZone)
         {
-            myZoneID = currZone;
-            mySex = Sex.Female;
-            myAge = Age.ThirtyFiveToFortyFour;
-            myEducLevel = EducationLevel.primary;
-            myHhldSize = HouseholdSize2.TwoPersons;
+            ZoneID = currZone;
+            Sex = Sex.Female;
+            Age = Age.ThirtyFiveToFortyFour;
+            EducationLevel = EducationLevel.primary;
+            HouseholdSize = HouseholdSize2.TwoPersons;
             Type = AgentType.Person;
+        }
+
+        private Person(Person original)
+        {
+            Type = AgentType.Person;
+            //copy the values
+            ZoneID = original.ZoneID;
+            Age = original.Age;
+            Sex = original.Sex;
+            HouseholdSize = original.HouseholdSize;
+            EducationLevel = original.EducationLevel;
         }
 
         public override string GetNewJointKey(string baseDim)
         {
             string jointKey;
-            if (baseDim == "Age")
+            if(baseDim == "Age")
             {
-                jointKey = ((int)mySex).ToString()
+                jointKey = ((int)Sex).ToString()
                             + Constants.CONDITIONAL_DELIMITER
-                            + ((int)myHhldSize).ToString()
+                            + ((int)HouseholdSize).ToString()
                             + Constants.CONDITIONAL_DELIMITER
-                            + ((int)myEducLevel).ToString();
+                            + ((int)EducationLevel).ToString();
             }
-            else if (baseDim == "Sex")
+            else if(baseDim == "Sex")
             {
-                jointKey = ((int)myAge).ToString()
+                jointKey = ((int)Age).ToString()
                             + Constants.CONDITIONAL_DELIMITER
-                            + ((int)myHhldSize).ToString()
+                            + ((int)HouseholdSize).ToString()
                             + Constants.CONDITIONAL_DELIMITER
-                            + ((int)myEducLevel).ToString();
+                            + ((int)EducationLevel).ToString();
             }
-            else if (baseDim == "HouseholdSize2")
+            else if(baseDim == "HouseholdSize2")
             {
-                jointKey = ((int)myAge).ToString()
+                jointKey = ((int)Age).ToString()
                             + Constants.CONDITIONAL_DELIMITER
-                            + ((int)mySex).ToString()
+                            + ((int)Sex).ToString()
                             + Constants.CONDITIONAL_DELIMITER
-                            + ((int)myEducLevel).ToString();
+                            + ((int)EducationLevel).ToString();
             }
-            else if (baseDim == "EducationLevel")
+            else if(baseDim == "EducationLevel")
             {
-                jointKey = ((int)myAge).ToString()
+                jointKey = ((int)Age).ToString()
                             + Constants.CONDITIONAL_DELIMITER
-                            + ((int)mySex).ToString()
+                            + ((int)Sex).ToString()
                             + Constants.CONDITIONAL_DELIMITER
-                            + ((int)myHhldSize).ToString();
+                            + ((int)HouseholdSize).ToString();
             }
             else
             {
@@ -134,33 +144,26 @@ namespace SimulationObjects
         public override SimulationObject CreateNewCopy(string baseDim,
             int baseDimVal)
         {
-            MemoryStream m = new MemoryStream();
-            BinaryFormatter b = new BinaryFormatter();
-            b.Serialize(m, this);
-            m.Position = 0;
-            Person myCopy = (Person)b.Deserialize(m);
-
-            if (baseDim == "Age")
+            Person copy = new Person(this);
+            // apply the new change
+            switch(baseDim)
             {
-                myCopy.myAge = (Age)baseDimVal;
+                case "Age":
+                    copy.Age = (Age)baseDimVal;
+                    break;
+                case "Sex":
+                    copy.Sex = (Sex)baseDimVal;
+                    break;
+                case "HouseholdSize2":
+                    copy.HouseholdSize = (HouseholdSize2)baseDimVal;
+                    break;
+                case "EducationLevel":
+                    copy.EducationLevel = (EducationLevel)baseDimVal;
+                    break;
+                default:
+                    return null;
             }
-            else if (baseDim == "Sex")
-            {
-                myCopy.mySex = (Sex)baseDimVal;
-            }
-            else if (baseDim == "HouseholdSize2")
-            {
-                myCopy.myHhldSize = (HouseholdSize2)baseDimVal;
-            }
-            else if (baseDim == "EducationLevel")
-            {
-                myCopy.myEducLevel = (EducationLevel)baseDimVal;
-            }
-            else
-            {
-                return null;
-            }
-            return myCopy;
+            return copy;
         }
     }
 }

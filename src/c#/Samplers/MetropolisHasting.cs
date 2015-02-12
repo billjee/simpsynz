@@ -18,8 +18,33 @@ namespace Samplers
 {
     public struct KeyValDoublePair
     {
-        public double category;
-        public double val;
+        public double Category;
+        public double Val;
+
+        public static bool operator==(KeyValDoublePair first, KeyValDoublePair second)
+        {
+            return first.Category == second.Category && first.Val == second.Val;
+        }
+
+        public static bool operator !=(KeyValDoublePair first, KeyValDoublePair second)
+        {
+            return first.Category != second.Category || first.Val != second.Val;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if(obj is KeyValDoublePair)
+            {
+                KeyValDoublePair second = (KeyValDoublePair)obj;
+                return Category == second.Category && Val == second.Val;
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
     // [BF] Rightnow it is only fixed for a log normal distribution for
     // income only
@@ -52,8 +77,8 @@ namespace Samplers
             double nxtVal = myRandGen.GetNextNormal(mean, stdev);
             double f_X_Val = GetTransitionProbablity(nxtVal);
             KeyValDoublePair currPair = new KeyValDoublePair();
-            currPair.category = nxtVal;
-            currPair.val = f_X_Val;
+            currPair.Category = nxtVal;
+            currPair.Val = f_X_Val;
             return currPair;
         }
 
@@ -83,18 +108,18 @@ namespace Samplers
             double expIncome = Math.Log(prvAgent.GetIncome());
             KeyValDoublePair currPair = new KeyValDoublePair();
             //start with mean value
-            currPair.category = currStateGen.GetMean();
-            currPair.val = currStateGen.GetTransitionProbablity(currPair.category);
+            currPair.Category = currStateGen.GetMean();
+            currPair.Val = currStateGen.GetTransitionProbablity(currPair.Category);
 
             for (int i = 0; i < Constants.WARMUP_ITERATIONS; i++)
             {
                 q_previous = currStateGen.GetTransitionProbablity(
                                Math.Log((double)prvAgent.GetIncome()));
-                q_current = currPair.val;
+                q_current = currPair.Val;
                 IncomeLevel prevLvl = IncomeConvertor.ConvertValueToLevel(
                                         (uint) Math.Exp(expIncome));
                 IncomeLevel currLvl = IncomeConvertor.ConvertValueToLevel(
-                                        (uint) Math.Exp(currPair.category));
+                                        (uint) Math.Exp(currPair.Category));
                 double b_prev = g_x.GetValue(dimension, prevLvl.ToString(),
                     prvAgent.GetNewJointKey(dimension), currZone);
                 double b_curr = g_x.GetValue(dimension, currLvl.ToString(),
@@ -110,7 +135,7 @@ namespace Samplers
                     comVal = 0.0000001;
                 if (randGen.NextDouble() < comVal)
                 {
-                    expIncome = currPair.category;
+                    expIncome = currPair.Category;
                 }
                 currPair = currStateGen.GetNextState();
             }

@@ -149,13 +149,13 @@ namespace Program
                 runsListThree.Add(CurrTotals[3]);
             }
 
-            currWorld.WriteMCStatsToFile(Constants.DATA_DIR +
+            World.WriteMCStatsToFile(Constants.DATA_DIR +
                         "Household\\CommuneList.csv", runsListZero, 0);
-            currWorld.WriteMCStatsToFile(Constants.DATA_DIR +
+            World.WriteMCStatsToFile(Constants.DATA_DIR +
                         "Household\\CommuneList.csv", runsListOne, 1);
-            currWorld.WriteMCStatsToFile(Constants.DATA_DIR +
+            World.WriteMCStatsToFile(Constants.DATA_DIR +
                         "Household\\CommuneList.csv", runsListTwo, 2);
-            currWorld.WriteMCStatsToFile(Constants.DATA_DIR +
+            World.WriteMCStatsToFile(Constants.DATA_DIR +
                         "Household\\CommuneList.csv", runsListThree, 3);
             //////////////////////////////
 

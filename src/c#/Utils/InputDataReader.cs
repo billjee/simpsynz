@@ -190,10 +190,6 @@ namespace PopulationSynthesis.Utils
 
         private void Dispose(bool managed)
         {
-            if(managed)
-            {
-                GC.SuppressFinalize(this);
-            }
             if(FileReader != null)
             {
                 FileReader.Dispose();
@@ -204,6 +200,7 @@ namespace PopulationSynthesis.Utils
         public void Dispose()
         {
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -744,7 +744,7 @@ namespace SimulationObjects
             }
         }
 
-        public void ComputeCommuneLevelStatisticsPeople(string poplFile,
+        public static void ComputeCommuneLevelStatisticsPeople(string poplFile,
                     string fileNam, string comList)
         {
             using (StreamReader currReader = new StreamReader(poplFile))
@@ -918,7 +918,7 @@ namespace SimulationObjects
             }
         }
 
-        public void ComputeCommuneLevelStatisticsCars(string poplFile,
+        public static void ComputeCommuneLevelStatisticsCars(string poplFile,
                             string fileNam, string comList)
         {
             using (StreamReader currReader = new StreamReader(poplFile))
@@ -1052,82 +1052,83 @@ namespace SimulationObjects
             string poplFile = Constants.DATA_DIR +
                             "Household\\PopulationRealization" + runNum.ToString() + ".csv";
             CreatePopulationByDwellingType(seed, poolFileName, poplFile);
-            StreamReader currReader = new StreamReader(poplFile);
             var currCarZero = new Dictionary<string, ZonalStat>();
             var currCarOne = new Dictionary<string, ZonalStat>();
             var currCarTwo = new Dictionary<string, ZonalStat>();
             var currCarThree = new Dictionary<string, ZonalStat>();
-            string currHhld;
-            currReader.ReadLine();
-            while(!currReader.EndOfStream)
+            using (StreamReader currReader = new StreamReader(poplFile))
             {
-                currHhld = currReader.ReadLine();
-                string[] currHhldTok = currHhld.Split(',');
-                string currsector = currHhldTok[1].Substring(0, 5);
-                int cntUn = int.Parse(currHhldTok[7]);
-                if(currCarZero.ContainsKey(currsector) && cntUn == 0)
+                string currHhld;
+                currReader.ReadLine();
+                while(!currReader.EndOfStream)
                 {
-                    var currStat = currCarZero[currsector];
-                    currStat.Count++;
-                    currCarZero[currsector] = currStat;
-                }
-                else if(cntUn == 0)
-                {
-                    var currStat = new ZonalStat();
-                    currStat.ZoneName = currsector;
-                    currStat.Count = 1;
-                    currCarZero.Add(currsector, currStat);
+                    currHhld = currReader.ReadLine();
+                    string[] currHhldTok = currHhld.Split(',');
+                    string currsector = currHhldTok[1].Substring(0, 5);
+                    int cntUn = int.Parse(currHhldTok[7]);
+                    if(currCarZero.ContainsKey(currsector) && cntUn == 0)
+                    {
+                        var currStat = currCarZero[currsector];
+                        currStat.Count++;
+                        currCarZero[currsector] = currStat;
+                    }
+                    else if(cntUn == 0)
+                    {
+                        var currStat = new ZonalStat();
+                        currStat.ZoneName = currsector;
+                        currStat.Count = 1;
+                        currCarZero.Add(currsector, currStat);
 
-                }
-                if(currCarOne.ContainsKey(currsector) && cntUn == 1)
-                {
-                    ZonalStat currStat = currCarOne[currsector];
-                    currStat.Count++;
-                    currCarOne[currsector] = currStat;
-                }
-                else if(cntUn == 1)
-                {
-                    ZonalStat currStat = new ZonalStat();
-                    currStat.ZoneName = currsector;
-                    currStat.Count = 1;
-                    currCarOne.Add(currsector, currStat);
+                    }
+                    if(currCarOne.ContainsKey(currsector) && cntUn == 1)
+                    {
+                        ZonalStat currStat = currCarOne[currsector];
+                        currStat.Count++;
+                        currCarOne[currsector] = currStat;
+                    }
+                    else if(cntUn == 1)
+                    {
+                        ZonalStat currStat = new ZonalStat();
+                        currStat.ZoneName = currsector;
+                        currStat.Count = 1;
+                        currCarOne.Add(currsector, currStat);
 
-                }
-                if(currCarTwo.ContainsKey(currsector) && cntUn == 2)
-                {
-                    ZonalStat currStat = (ZonalStat)currCarTwo[currsector];
-                    currStat.Count++;
-                    currCarTwo[currsector] = currStat;
-                }
-                else if(cntUn == 2)
-                {
-                    ZonalStat currStat = new ZonalStat();
-                    currStat.ZoneName = currsector;
-                    currStat.Count = 1;
-                    currCarTwo.Add(currsector, currStat);
-                }
-                if(currCarThree.ContainsKey(currsector) && cntUn == 3)
-                {
-                    ZonalStat currStat = (ZonalStat)currCarThree[currsector];
-                    currStat.Count++;
-                    currCarThree[currsector] = currStat;
-                }
-                else if(cntUn == 3)
-                {
-                    ZonalStat currStat = new ZonalStat();
-                    currStat.ZoneName = currsector;
-                    currStat.Count = 1;
-                    currCarThree.Add(currsector, currStat);
+                    }
+                    if(currCarTwo.ContainsKey(currsector) && cntUn == 2)
+                    {
+                        ZonalStat currStat = (ZonalStat)currCarTwo[currsector];
+                        currStat.Count++;
+                        currCarTwo[currsector] = currStat;
+                    }
+                    else if(cntUn == 2)
+                    {
+                        ZonalStat currStat = new ZonalStat();
+                        currStat.ZoneName = currsector;
+                        currStat.Count = 1;
+                        currCarTwo.Add(currsector, currStat);
+                    }
+                    if(currCarThree.ContainsKey(currsector) && cntUn == 3)
+                    {
+                        ZonalStat currStat = (ZonalStat)currCarThree[currsector];
+                        currStat.Count++;
+                        currCarThree[currsector] = currStat;
+                    }
+                    else if(cntUn == 3)
+                    {
+                        ZonalStat currStat = new ZonalStat();
+                        currStat.ZoneName = currsector;
+                        currStat.Count = 1;
+                        currCarThree.Add(currsector, currStat);
 
+                    }
                 }
             }
-
-            var currArrayList = new List<Dictionary<string, ZonalStat>>();
+            var currArrayList = new List<Dictionary<string, ZonalStat>>(4);
             currArrayList.Add(currCarZero);
             currArrayList.Add(currCarOne);
             currArrayList.Add(currCarTwo);
             currArrayList.Add(currCarThree);
-            currReader.Close();
+
             if(delRealizations == true)
             {
                 File.Delete(poplFile);
@@ -1135,7 +1136,7 @@ namespace SimulationObjects
             return currArrayList;
         }
 
-        public void WriteMCStatsToFile(string CommuneList, List<Dictionary<string, World.ZonalStat>> RunsOutput,
+        public static void WriteMCStatsToFile(string CommuneList, List<Dictionary<string, World.ZonalStat>> RunsOutput,
                                 int category)
         {
             using (StreamReader currComuneList = new StreamReader(CommuneList))
@@ -1184,101 +1185,103 @@ namespace SimulationObjects
                     int currCnt = 0;
                     while((currInStr = currReader.ReadLine()) != null)
                     {
-                        string[] currStrTok = currInStr.Split(',');
+                        //string[] currStrTok = currInStr.Split(',');
 
                         if(currRandGen.NextDouble() < 0.5 && currCnt < cnt)
                         {
                             currCnt++;
-                            currOutputFile.WriteLine(currStrTok[0]
+                            /*currOutputFile.WriteLine(currStrTok[0]
                                                     + "," + currStrTok[2]
                                                     + "," + currStrTok[3]
-                                                    + "," + currStrTok[4]);
+                                                    + "," + currStrTok[4]);*/
+                            // we can just write the file back since it is just parsing CSV to begin with
+                            currOutputFile.WriteLine(currInStr);
                         }
                     }
                 }
             }
         }
 
-        public void ComputeSectorLevelStatistics(string poplFile, int sectIndx,
+        public static void ComputeSectorLevelStatistics(string poplFile, int sectIndx,
                                 int dimIndx, int catCnt)
         {
-            StreamReader currReader = new StreamReader(poplFile);
-
-            Hashtable currDimension = new Hashtable();
-
-            StreamWriter currOutputFile = new
+            using (StreamReader currReader = new StreamReader(poplFile))
+            using (StreamWriter currOutputFile = new
                 StreamWriter(Constants.DATA_DIR
-                            + "SectorStatistics" + dimIndx + ".csv");
-            string currHhld;
-            currReader.ReadLine();
-            for(int i = 1001; i < 5946; i++)
+                            + "SectorStatistics" + dimIndx + ".csv"))
             {
-                currDimension.Add(i.ToString(), new Hashtable());
-            }
-            while(!currReader.EndOfStream)
-            {
-                currHhld = currReader.ReadLine();
-                string[] currHhldTok = currHhld.Split(',');
-                string currsector = currHhldTok[sectIndx];
-                /*if (currDimension.Contains(currsector))
-                {*/
-                Hashtable currData = (Hashtable)currDimension[currsector];
-                if(currData.Contains(currHhldTok[dimIndx]))
+                Hashtable currDimension = new Hashtable();
+
+
+                string currHhld;
+                currReader.ReadLine();
+                for(int i = 1001; i < 5946; i++)
                 {
-                    KeyValPair currStat = (KeyValPair)
-                        currData[currHhldTok[dimIndx]];
-                    currStat.Value++;
-                    currData[currHhldTok[dimIndx]] = currStat;
-                    currDimension[currsector] = currData;
+                    currDimension.Add(i.ToString(), new Hashtable());
                 }
-                else
+                while(!currReader.EndOfStream)
                 {
-                    KeyValPair currStat = new KeyValPair();
-                    currStat.Category = currHhldTok[dimIndx];
-                    currStat.Value = 1;
-                    Hashtable currCat = (Hashtable)
-                            currDimension[currsector];
-                    currCat.Add(currStat.Category, currStat);
-                    currDimension[currsector] = currCat;
-                }
-                /*}
-                else
-                {
-                    Hashtable currCat = new Hashtable();
-                    KeyValPair currStat = new KeyValPair();
-                    currStat.category = currHhldTok[dimIndx];
-                    currStat.value = 1;
-                    currCat.Add(currStat.category, currStat);
-                    currDimension.Add(currsector, currCat);
-                }*/
-            }
-            string firstRow = "Sector";
-            for(int i = 0; i < catCnt; i++)
-            {
-                firstRow += "," + i.ToString();
-            }
-            currOutputFile.WriteLine(firstRow);
-            foreach(DictionaryEntry ent in currDimension)
-            {
-                Hashtable catEnt = (Hashtable)ent.Value;
-                string curString = (string)ent.Key;
-                for(int i = 0; i < catCnt; i++)
-                {
-                    if(catEnt.Contains(i.ToString()))
+                    currHhld = currReader.ReadLine();
+                    string[] currHhldTok = currHhld.Split(',');
+                    string currsector = currHhldTok[sectIndx];
+                    /*if (currDimension.Contains(currsector))
+                    {*/
+                    Hashtable currData = (Hashtable)currDimension[currsector];
+                    if(currData.Contains(currHhldTok[dimIndx]))
                     {
-                        KeyValPair curSt = (KeyValPair)catEnt[i.ToString()];
-                        curString += "," +
-                            ((int)curSt.Value).ToString();
+                        KeyValPair currStat = (KeyValPair)
+                            currData[currHhldTok[dimIndx]];
+                        currStat.Value++;
+                        currData[currHhldTok[dimIndx]] = currStat;
+                        currDimension[currsector] = currData;
                     }
                     else
                     {
-                        curString += ",0";
+                        KeyValPair currStat = new KeyValPair();
+                        currStat.Category = currHhldTok[dimIndx];
+                        currStat.Value = 1;
+                        Hashtable currCat = (Hashtable)
+                                currDimension[currsector];
+                        currCat.Add(currStat.Category, currStat);
+                        currDimension[currsector] = currCat;
                     }
+                    /*}
+                    else
+                    {
+                        Hashtable currCat = new Hashtable();
+                        KeyValPair currStat = new KeyValPair();
+                        currStat.category = currHhldTok[dimIndx];
+                        currStat.value = 1;
+                        currCat.Add(currStat.category, currStat);
+                        currDimension.Add(currsector, currCat);
+                    }*/
                 }
-                currOutputFile.WriteLine(curString);
+                string firstRow = "Sector";
+                for(int i = 0; i < catCnt; i++)
+                {
+                    firstRow += "," + i.ToString();
+                }
+                currOutputFile.WriteLine(firstRow);
+                foreach(DictionaryEntry ent in currDimension)
+                {
+                    Hashtable catEnt = (Hashtable)ent.Value;
+                    string curString = (string)ent.Key;
+                    for(int i = 0; i < catCnt; i++)
+                    {
+                        if(catEnt.Contains(i.ToString()))
+                        {
+                            KeyValPair curSt = (KeyValPair)catEnt[i.ToString()];
+                            curString += "," +
+                                ((int)curSt.Value).ToString();
+                        }
+                        else
+                        {
+                            curString += ",0";
+                        }
+                    }
+                    currOutputFile.WriteLine(curString);
+                }
             }
-            currReader.Close();
-            currOutputFile.Close();
         }
 
         // [BF] make it proper

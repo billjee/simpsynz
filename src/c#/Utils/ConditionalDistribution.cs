@@ -57,8 +57,17 @@ namespace PopulationSynthesis.Utils
         {
             return null;
         }
+
+        [ThreadStatic]
+        private static StringBuilder KeyBuilder;
+        
         protected string ProcessKey(string key)
         {
+            var builder = KeyBuilder;
+            if(builder == null)
+            {
+                KeyBuilder = builder = new StringBuilder();
+            }
             string[] procdKeyTok =
                 key.Split(Utils.Constants.CONDITIONAL_DELIMITER[0]);
 
@@ -70,15 +79,15 @@ namespace PopulationSynthesis.Utils
                         Utils.Constants.CONDITIONAL_GENERIC;
                 }
             }
-
-            string procdKey = procdKeyTok[0];
+            builder.Clear();
+            builder.Append(procdKeyTok[0]);
             for (int i = 1; i < procdKeyTok.Length; i++)
             {
-                procdKey += Utils.Constants.CONDITIONAL_DELIMITER
-                          + procdKeyTok[i];
+                builder.Append(Utils.Constants.CONDITIONAL_DELIMITER);
+                builder.Append(procdKeyTok[i]);
             }
 
-            return procdKey;
+            return builder.ToString();
         }
 
     }

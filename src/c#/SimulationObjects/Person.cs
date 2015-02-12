@@ -98,47 +98,50 @@ namespace SimulationObjects
             EducationLevel = original.EducationLevel;
         }
 
+        [ThreadStatic]
+        private static StringBuilder KeyBuilder;
+
         public override string GetNewJointKey(string baseDim)
         {
-            string jointKey;
+            var builder = KeyBuilder;
+            if(builder == null)
+            {
+                KeyBuilder = builder = new StringBuilder();
+            }
+            builder.Clear();
             if(baseDim == "Age")
             {
-                jointKey = ((int)Sex).ToString()
-                            + Constants.CONDITIONAL_DELIMITER
-                            + ((int)HouseholdSize).ToString()
-                            + Constants.CONDITIONAL_DELIMITER
-                            + ((int)EducationLevel).ToString();
+                builder.Append((int)Sex);
+                builder.Append(Constants.CONDITIONAL_DELIMITER);
+                builder.Append((int)HouseholdSize);
+                builder.Append(Constants.CONDITIONAL_DELIMITER);
+                builder.Append((int)EducationLevel);
             }
             else if(baseDim == "Sex")
             {
-                jointKey = ((int)Age).ToString()
-                            + Constants.CONDITIONAL_DELIMITER
-                            + ((int)HouseholdSize).ToString()
-                            + Constants.CONDITIONAL_DELIMITER
-                            + ((int)EducationLevel).ToString();
+                builder.Append((int)Age).ToString();
+                builder.Append(Constants.CONDITIONAL_DELIMITER);
+                builder.Append((int)HouseholdSize);
+                builder.Append(Constants.CONDITIONAL_DELIMITER);
+                builder.Append((int)EducationLevel);
             }
             else if(baseDim == "HouseholdSize2")
             {
-                jointKey = ((int)Age).ToString()
-                            + Constants.CONDITIONAL_DELIMITER
-                            + ((int)Sex).ToString()
-                            + Constants.CONDITIONAL_DELIMITER
-                            + ((int)EducationLevel).ToString();
+                builder.Append((int)Age);
+                builder.Append(Constants.CONDITIONAL_DELIMITER);
+                builder.Append((int)Sex);
+                builder.Append(Constants.CONDITIONAL_DELIMITER);
+                builder.Append((int)EducationLevel);
             }
             else if(baseDim == "EducationLevel")
             {
-                jointKey = ((int)Age).ToString()
-                            + Constants.CONDITIONAL_DELIMITER
-                            + ((int)Sex).ToString()
-                            + Constants.CONDITIONAL_DELIMITER
-                            + ((int)HouseholdSize).ToString();
+                builder.Append((int)Age);
+                builder.Append(Constants.CONDITIONAL_DELIMITER);
+                builder.Append((int)Sex);
+                builder.Append(Constants.CONDITIONAL_DELIMITER);
+                builder.Append((int)HouseholdSize);
             }
-            else
-            {
-                jointKey = "";
-            }
-
-            return jointKey;
+            return builder.ToString();
         }
 
         public override SimulationObject CreateNewCopy(string baseDim,
